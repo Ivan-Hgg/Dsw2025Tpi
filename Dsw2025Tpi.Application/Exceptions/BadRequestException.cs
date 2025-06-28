@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dsw2025Tpi.Application.Exceptions
 {
-    public class ApplicationException(string message) : Exception(message)
+    public class BadRequestException(string message) : ApplicationException(message)
     {
     }
 }

@@ -1,7 +1,8 @@
 ﻿using Dsw2025Tpi.Application.Dtos;
-using Dsw2025Tpi.Application.Services;
+using Dsw2025Tpi.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using ApplicationException = Dsw2025Tpi.Application.Exceptions.ApplicationException;
+using Dsw2025Tpi.Application.Exceptions;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 
 
 namespace Dsw2025Tpi.Api.Controllers;
@@ -10,9 +11,9 @@ namespace Dsw2025Tpi.Api.Controllers;
 [Route("api/products")]
 public class ProductsController : ControllerBase
 {
-    private readonly ProductsManagementService _service;
+    private readonly IProductsManagementService _service;
 
-    public ProductsController(ProductsManagementService service)
+    public ProductsController(IProductsManagementService service)
     {
         _service = service;
     }
@@ -28,78 +29,66 @@ public class ProductsController : ControllerBase
     [HttpGet("{id:guid}", Name = "GetProductById")]
     public async Task<IActionResult> GetProductByIdAsync(Guid id)
     {
-        var product = await _service.GetProductById(id);
-        if (product == null)
+        try
         {
-            return NotFound();
+            var result = await _service.GetProductById(id);
+            return Ok(result);
         }
-        return Ok(product);
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     [HttpPost()]
     public async Task<IActionResult> CreateProductAsync([FromBody] ProductModel.Request request)
     {
-        if (request == null)
+        try
         {
-            return BadRequest("Product data is required.");
+            var result = await _service.AddProduct(request);
+            return CreatedAtAction(nameof(GetProductByIdAsync), new { id = result.Id }, result);
         }
-        var createdProduct = await _service.AddProduct(request);
-        //return CreatedAtAction(nameof(GetProductByIdAsync), new { id = createdProduct.Id }, createdProduct);
-        return CreatedAtRoute("GetProductById", new { id = createdProduct.Id }, createdProduct);
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (DuplicatedEntityException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 
     [HttpPut]
     [Route("{id:guid}")]
-    public async Task<IActionResult> UpdateProductAsync(Guid id, [FromBody] ProductModel.Request request)
-    {
-        if (request == null)
-        {
-            return BadRequest("Product data is invalid.");
-        }
-        var updatedProduct = await _service.UpdateProduct(id, request);
-        if (updatedProduct == null)
-        {
-            return NotFound();
-        }
-        return Ok(updatedProduct);
-    }
-
-  /*  [HttpDelete]
-    [Route("{id:guid}")]
-    public async Task<IActionResult> DeleteProductAsync(Guid id)
-    {
-        var deleted = await _service.DeactivateProduct(id);
-        if (!deleted)
-        {
-            return NotFound();
-        }
-        return NoContent();
-    }*/
-
-    [HttpPatch()]
-    [Route("{id:guid}")]
-    public async Task<IActionResult> PatchProduct(Guid id)
+    public async Task<IActionResult> UpdateProdcut(Guid id, ProductModel.Request request)
     {
         try
         {
-            var product = await _service.DeactivateProduct(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            return Ok(product);
+            var result = await _service.UpdateProduct(id, request);
+            return Ok(result);
         }
-        catch (ArgumentException ae)
+        catch (EntityNotFoundException ex)
         {
-            return BadRequest(ae.Message);
+            return NotFound(ex.Message);
         }
-        catch (ApplicationException de)
+        catch (BadRequestException ex)
         {
-            return Conflict(de.Message);
+            return BadRequest(ex.Message);
         }
-        catch (Exception)
+    }
+
+    [HttpPatch()]
+    [Route("{id:guid}")]
+    public async Task<IActionResult> DeactivateProduct(Guid id)
+    {
+        try
         {
-            return Problem("Se produjo un error al actualizar el producto");
+            await _service.DeactivateProduct(id);
+            return NoContent();
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(ex.Message);
         }
     }
 }

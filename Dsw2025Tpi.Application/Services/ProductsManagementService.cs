@@ -1,5 +1,7 @@
 ﻿using Dsw2025Tpi.Application.Dtos;
 using Dsw2025Tpi.Application.Exceptions;
+using Dsw2025Tpi.Application.Interfaces;
+using Dsw2025Tpi.Application.Validation;
 using Dsw2025Tpi.Domain.Entities;
 using Dsw2025Tpi.Domain.Interfaces;
 using System;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Dsw2025Tpi.Application.Services;
 
-public class ProductsManagementService
+public class ProductsManagementService : IProductsManagementService
 {
     private readonly IRepository _repository;
 
@@ -21,9 +23,9 @@ public class ProductsManagementService
 
     public async Task<ProductModel.Response?> GetProductById(Guid id)
     {
-        var product= await _repository.GetById<Product>(id);
+        var product = await _repository.GetById<Product>(id);
         if (product == null)
-            return null;
+            throw new EntityNotFoundException("Producto no encontrado");
 
         return new ProductModel.Response(
             product.Id,
@@ -36,6 +38,7 @@ public class ProductsManagementService
             product.IsActive
         );
     }
+
     public async Task<IEnumerable<ProductModel.Response>?> GetAllProducts()
     {
         var products = await _repository.GetFiltered<Product>(p => p.IsActive);
@@ -53,35 +56,35 @@ public class ProductsManagementService
 
     public async Task<ProductModel.Response> AddProduct(ProductModel.Request request)
     {
-        if (string.IsNullOrWhiteSpace(request.Sku) ||
-            string.IsNullOrWhiteSpace(request.InternalCode) ||
-            string.IsNullOrWhiteSpace(request.Name) ||
-            string.IsNullOrWhiteSpace(request.Description) ||
-            string.IsNullOrWhiteSpace(request.CurrentUnitPrice.ToString()) ||
-            string.IsNullOrWhiteSpace(request.StockQuantity.ToString()))
-        {
-            throw new ArgumentException("Invalid values for product");
-        }
+        ProductValidator.Validate(request);
 
-        var exist = await _repository.First<Product>(p => p.Sku == request.Sku);
-        if (exist != null) throw new DuplicatedEntityException($"A product with that Sku already exists {request.Sku}");
-        if (exist != null) throw new DuplicatedEntityException($"A product with that Internal Code already exists {request.InternalCode}");
+        var existSku = await _repository.First<Product>(p => p.Sku == request.Sku);
+        if (existSku != null)
+            throw new DuplicatedEntityException($"Un producto con el mismo Sku ya existe {request.Sku}");
 
-        var product = new Product(request.Sku, request.InternalCode, request.Name, request.Description, request.CurrentUnitPrice, request.StockQuantity);
+        var existInternalCode = await _repository.First<Product>(p => p.InternalCode == request.InternalCode);
+        if (existInternalCode != null)
+            throw new DuplicatedEntityException($"Un producto con el mismo InternalCode ya existe {request.InternalCode}");
+
+        var description = request.Description ?? string.Empty;
+
+        var product = new Product(request.Sku, request.InternalCode, request.Name, description, request.CurrentUnitPrice, request.StockQuantity);
         await _repository.Add(product);
-        return new ProductModel.Response(product.Id, product.Sku, product.InternalCode,product.Name, product.Description, product.CurrentUnitPrice, product.StockQuantity, product.IsActive);
+        return new ProductModel.Response(product.Id, product.Sku, product.InternalCode, product.Name, product.Description, product.CurrentUnitPrice, product.StockQuantity, product.IsActive);
     }
 
     public async Task<ProductModel.Response> UpdateProduct(Guid id, ProductModel.Request request)
-    {
-        var product = await _repository.GetById<Product>(id);
-        if (product == null)
-            throw new System.ApplicationException("Producto no encontrado.");
-        if (string.IsNullOrWhiteSpace(request.Sku) || string.IsNullOrWhiteSpace(request.Name))
-            throw new ArgumentException("SKU y nombre son obligatorios.");
+    { 
+            ProductValidator.Validate(request);
+
+        var product = await _repository.GetById<Product>(id) ?? throw new System.ApplicationException("Producto no encontrado.");
+
+        
+
         product.Sku = request.Sku;
         product.InternalCode = request.InternalCode;
         product.Name = request.Name;
+        product.Description = request.Description;
         product.CurrentUnitPrice = request.CurrentUnitPrice;
         product.StockQuantity = request.StockQuantity;
 
@@ -98,25 +101,13 @@ public class ProductsManagementService
         );
     }
 
-    public async Task<ProductModel.Response?> DeactivateProduct(Guid id)
+    public async Task DeactivateProduct(Guid id)
     {
         var product = await _repository.GetById<Product>(id);
         if (product == null)
-            return null;
+            throw new EntityNotFoundException("Producto no encontrado.");
 
         product.IsActive = false;
-        var updated = await _repository.Update(product);
-
-        return new ProductModel.Response(
-            updated.Id,
-            updated.Sku,
-            updated.InternalCode,
-            updated.Name,
-            updated.Description,
-            updated.CurrentUnitPrice,
-            updated.StockQuantity,
-            updated.IsActive
-        );
+        await _repository.Update(product);
     }
 }
-

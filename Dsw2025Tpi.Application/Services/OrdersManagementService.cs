@@ -1,5 +1,6 @@
 ﻿using Dsw2025Tpi.Application.Dtos;
 using Dsw2025Tpi.Application.Validation;
+using Dsw2025Tpi.Application.Interfaces;
 using Dsw2025Tpi.Domain.Entities;
 using Dsw2025Tpi.Domain.Interfaces;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Dsw2025Tpi.Application.Services
 {
-    public class OrdersManagementService
+    public class OrdersManagementService : IOrdersManagementService
     {
         private readonly IRepository _repository;
 
@@ -34,8 +35,12 @@ namespace Dsw2025Tpi.Application.Services
             // Descuenta stock y arma los ítems
             foreach (var item in request.OrderItems)
             {
+                // Incluye el producto para la respuesta
                 var product = await _repository.GetById<Product>(item.ProductId)
                     ?? throw new InvalidOperationException($"Producto no encontrado: {item.ProductId}");
+
+                if (product.StockQuantity < item.Quantity)
+                    throw new InvalidOperationException($"Stock insuficiente para el producto: {product.Name}");
 
                 product.StockQuantity -= item.Quantity;
                 await _repository.Update(product);
@@ -44,7 +49,9 @@ namespace Dsw2025Tpi.Application.Services
                 {
                     ProductId = product.Id,
                     Quantity = item.Quantity,
-                    Price = product.CurrentUnitPrice
+                    Price = item.UnitPrice,
+                    Description = item.Description,
+                    Product = product
                 };
                 orderItems.Add(orderItem);
                 totalAmount += product.CurrentUnitPrice * item.Quantity;
@@ -52,7 +59,6 @@ namespace Dsw2025Tpi.Application.Services
 
             var order = new Order
             {
-                Id = Guid.NewGuid(),
                 CustomerId = request.CustomerId,
                 ShippingAddress = request.ShippingAddress,
                 BillingAddress = request.BillingAddress,
@@ -64,6 +70,7 @@ namespace Dsw2025Tpi.Application.Services
 
             await _repository.Add(order);
 
+            // Los productos ya están asignados en los OrderItem
             var responseItems = orderItems.Select(oi => new OrderItemModel.Response(
                 oi.Id,
                 oi.ProductId,
