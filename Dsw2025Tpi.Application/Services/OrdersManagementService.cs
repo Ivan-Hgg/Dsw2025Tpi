@@ -49,8 +49,8 @@ namespace Dsw2025Tpi.Application.Services
                 {
                     ProductId = product.Id,
                     Quantity = item.Quantity,
-                    Price = item.UnitPrice,
-                    Description = item.Description,
+                    Price = product.CurrentUnitPrice,
+                    Description = product.Description,
                     Product = product
                 };
                 orderItems.Add(orderItem);
