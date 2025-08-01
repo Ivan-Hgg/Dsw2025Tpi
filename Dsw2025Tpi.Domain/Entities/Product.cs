@@ -7,17 +7,6 @@ using System.Threading.Tasks;
 namespace Dsw2025Tpi.Domain.Entities;
 public class Product : EntityBase
 {
-    public Product(string sku, string internalCode, string name, string description, decimal currentUnitPrice, int stockQuantity)
-    {
-        Sku = sku;
-        InternalCode = internalCode;
-        Name = name;
-        Description = description;
-        CurrentUnitPrice = currentUnitPrice;
-        StockQuantity = stockQuantity;
-        IsActive = true;
-    }
-
     public string Sku { get; set; }
     public string Name { get; set; }
 
@@ -51,4 +40,16 @@ public class Product : EntityBase
     public bool IsActive { get; set; }
 
     public ICollection<OrderItem>? Items { get; set; }
+    public Product(string sku, string internalCode, string name, string description, decimal currentUnitPrice, int stockQuantity)
+    {
+        Sku = sku;
+        InternalCode = internalCode;
+        Name = name;
+        Description = description;
+        CurrentUnitPrice = currentUnitPrice;
+        StockQuantity = stockQuantity;
+        IsActive = true;
+    }
+
+    
 }

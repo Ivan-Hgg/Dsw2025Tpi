@@ -5,11 +5,7 @@ namespace Dsw2025Tpi.Data;
 
 public class Dsw2025TpiContext : DbContext
 {
-    public Dsw2025TpiContext(DbContextOptions<Dsw2025TpiContext> options)
-        : base(options)
-    {
-    }
-
+    public Dsw2025TpiContext(DbContextOptions<Dsw2025TpiContext> options): base(options){ }
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
@@ -19,7 +15,7 @@ public class Dsw2025TpiContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Product
+        
         modelBuilder.Entity<Product>(eb =>
         {
             eb.ToTable("Products");
@@ -41,7 +37,6 @@ public class Dsw2025TpiContext : DbContext
                 .IsRequired();
         });
 
-        // Customer
         modelBuilder.Entity<Customer>(eb =>
         {
             eb.ToTable("Customers");
@@ -57,7 +52,6 @@ public class Dsw2025TpiContext : DbContext
                 .HasMaxLength(32);
         });
 
-        // Order
         modelBuilder.Entity<Order>(eb =>
         {
             eb.ToTable("Orders");
@@ -80,7 +74,6 @@ public class Dsw2025TpiContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // OrderItem
         modelBuilder.Entity<OrderItem>(eb =>
         {
             eb.ToTable("OrderItems");

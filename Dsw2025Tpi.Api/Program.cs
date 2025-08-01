@@ -28,6 +28,7 @@ public class Program
             var dbContext = scope.ServiceProvider.GetRequiredService<Dsw2025TpiContext>();
             dbContext.Database.Migrate(); // Aplica migraciones pendientes  
             dbContext.SeedDatabase();     // Carga los datos desde los JSON  
+
         }
 
         // Configure the HTTP request pipeline.  
