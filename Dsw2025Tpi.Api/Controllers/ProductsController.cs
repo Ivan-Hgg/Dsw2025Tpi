@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.TagHelpers;
 namespace Dsw2025Tpi.Api.Controllers;
 
 [ApiController]
-[Route("api/products")]
+[Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
     private readonly IProductsManagementService _service;
@@ -26,7 +26,7 @@ public class ProductsController : ControllerBase
         return Ok(products);
     }
 
-    [HttpGet("{id:guid}", Name = "GetProductById")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetProductByIdAsync(Guid id)
     {
         try
@@ -46,7 +46,7 @@ public class ProductsController : ControllerBase
         try
         {
             var result = await _service.AddProduct(request);
-            return CreatedAtAction(nameof(GetProductByIdAsync), new { id = result.Id }, result);
+            return StatusCode(201, result);
         }
         catch (InvalidOperationException ex)
         {
@@ -60,7 +60,7 @@ public class ProductsController : ControllerBase
 
     [HttpPut]
     [Route("{id:guid}")]
-    public async Task<IActionResult> UpdateProdcut(Guid id, ProductModel.Request request)
+    public async Task<IActionResult> UpdateProdcut(Guid id,[FromBody] ProductModel.Request request)
     {
         try
         {
