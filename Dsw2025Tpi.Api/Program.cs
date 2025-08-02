@@ -2,6 +2,7 @@ using Dsw2025Tpi.Api.DependencyInyection;
 using Dsw2025Tpi.Data;
 using Dsw2025Tpi.Data.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 namespace Dsw2025Tpi.Api;
 
@@ -15,10 +16,39 @@ public class Program
         // Add services to the container.  
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(o =>
+        {
+            o.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Desarrollo de Software",
+                Version = "v1",
+            });
+            o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Name = "Authorization",
+                Description = "Ingresar el token",
+                Type = SecuritySchemeType.ApiKey
+            });
+            o.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+        });
         builder.Services.AddHealthChecks();
         // Se pasa la configuración requerida al método AddDomainServices  
         builder.Services.AddDomainServices(builder.Configuration);
+        builder.Services.AddAuthentication().AddJwtBearer();
 
         var app = builder.Build();
 

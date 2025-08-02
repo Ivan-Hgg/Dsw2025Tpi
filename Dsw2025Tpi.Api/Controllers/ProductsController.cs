@@ -3,12 +3,14 @@ using Dsw2025Tpi.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Dsw2025Tpi.Application.Exceptions;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace Dsw2025Tpi.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles ="Administrador")]
 public class ProductsController : ControllerBase
 {
     private readonly IProductsManagementService _service;
@@ -19,6 +21,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet()]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllProductsAsync()
     {
         var products = await _service.GetAllProducts();
@@ -27,6 +30,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetProductByIdAsync(Guid id)
     {
         try
