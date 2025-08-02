@@ -59,6 +59,7 @@ public class EfRepository : IRepository
         return entity;
     }
 
+    //Join
     private static IQueryable<T> ApplyIncludes<T>(IQueryable<T> query, string[] includes) where T : EntityBase
     {
         if (includes == null || includes.Length == 0)

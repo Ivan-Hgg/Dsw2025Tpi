@@ -42,7 +42,7 @@ public class ProductsManagementService : IProductsManagementService
     public async Task<IEnumerable<ProductModel.Response>?> GetAllProducts()
     {
         var products = await _repository.GetFiltered<Product>(p => p.IsActive);
-        return products?.Select(p => new ProductModel.Response(
+        return products?.Select((p) => new ProductModel.Response(
             p.Id,
             p.Sku,
             p.InternalCode,
