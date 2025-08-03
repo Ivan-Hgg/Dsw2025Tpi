@@ -1,7 +1,10 @@
 using Dsw2025Tpi.Api.DependencyInyection;
 using Dsw2025Tpi.Data;
 using Dsw2025Tpi.Data.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace Dsw2025Tpi.Api;
@@ -47,8 +50,9 @@ public class Program
         });
         builder.Services.AddHealthChecks();
         // Se pasa la configuración requerida al método AddDomainServices  
+        builder.Services.AddIdentityServices(builder.Configuration);
         builder.Services.AddDomainServices(builder.Configuration);
-        builder.Services.AddAuthentication().AddJwtBearer();
+        builder.Services.AddJWTServices(builder.Configuration);
 
         var app = builder.Build();
 
@@ -70,6 +74,9 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.UseRouting();
+        
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
