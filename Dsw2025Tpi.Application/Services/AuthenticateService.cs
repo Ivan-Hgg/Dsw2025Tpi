@@ -18,14 +18,31 @@ public class AuthenticateService : IAuthenticateService
 {
     private readonly IRepository _repository;
     private readonly UserManager<IdentityUserExtension> _userManager;
-    public AuthenticateService(IRepository repository, UserManager<IdentityUserExtension> userManager)
+    private readonly SignInManager<IdentityUserExtension> _signInManager;
+    private readonly IJwtTokenService _jwtTokenService;
+
+    public AuthenticateService(IRepository repository, UserManager<IdentityUserExtension> userManager
+        , SignInManager<IdentityUserExtension> signInManager, IJwtTokenService jwtTokenService)
     {
         _repository = repository;
         _userManager = userManager;
+        _signInManager = signInManager;
+        _jwtTokenService = jwtTokenService;
     }
-    public Task<IdentityResult> LoginAsync(LoginModel modedl)
+    public async Task<LoginModelResponse> LoginAsync(LoginModelRequest model)
     {
-        throw new NotImplementedException();
+        string rol=model.role;
+        if(string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrWhiteSpace(model.Password))
+            throw new ArgumentException("El nombre de usuario y la contraseña son obligatorios");
+        if(string.IsNullOrWhiteSpace(model.role)) rol="Cliente";
+
+        var user = await _userManager.FindByNameAsync(model.Username);
+        if (user == null) throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
+
+        var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+        if (!result.Succeeded) throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
+        var token = _jwtTokenService.GenerateToken(model.Username, rol);
+        return new LoginModelResponse(token); 
     }
 
     public async Task<IdentityResult> RegisterAsync(RegisterModel model)

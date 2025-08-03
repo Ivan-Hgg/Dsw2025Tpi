@@ -30,38 +30,21 @@ public class AuthenticateController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginModel request)
+    public async Task<IActionResult> Login([FromBody] LoginModelRequest request)
     {
-        
-        var user = await _userManager.FindByNameAsync(request.Username);
-        if (user == null)
+        try
         {
-            return Unauthorized("Usuario o contraseña incorrectos");
+            var token= await _authenticateService.LoginAsync(request);
+            return Ok(new { token });
         }
-
-        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
-        if (!result.Succeeded)
+        catch (UnauthorizedAccessException ex)
         {
-            return Unauthorized("Usuario o contraseña incorrectos");
+            return Unauthorized(ex.Message);
         }
-        var token = _jwtTokenService.GenerateToken(request.Username, request.role);
-        return Ok(new { token }); 
-        /*
-        var role = string.Empty;
-        if (request.Username == "admin" && request.Password == "admin123")
+        catch (ArgumentException ex)
         {
-            role = "Administrador";
+            return BadRequest(ex.Message);
         }
-        else if (request.Username == "user" && request.Password == "user123")
-        {
-            role = "Usuario";
-        }
-        else
-        {
-            return Unauthorized("Usuario o contraseña incorrectos");
-        }
-        var token = _jwtTokenService.GenerateToken(request.Username, role);
-        return Ok(new { token });*/
     }
     
     [HttpPost("register")]
