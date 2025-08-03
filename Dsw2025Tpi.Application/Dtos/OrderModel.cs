@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dsw2025Tpi.Domain.Entities;
+using System;
 
 namespace Dsw2025Tpi.Application.Dtos
 {
@@ -10,16 +11,22 @@ namespace Dsw2025Tpi.Application.Dtos
             string BillingAddress,
             List<OrderItemModel.OrderItemRequest> OrderItems
         );
+        public record OrderRequestFilter(
+            Guid? CustomerId,
+            OrderStatus? Status,
+            int PageNumber,
+            int PageSize
+        );
 
         public record Response(
-            Guid Id,
+            Guid OrderId,
             Guid CustomerId,
             string ShippingAddress,
             string BillingAddress,
             DateTime Date,
             decimal TotalAmount,
             string Status,
-            List<OrderItemModel.Response> OrderItems
+            IEnumerable<OrderItemModel.Response> OrderItems
         );
     }
 }

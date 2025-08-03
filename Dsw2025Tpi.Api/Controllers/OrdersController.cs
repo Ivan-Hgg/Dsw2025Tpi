@@ -1,5 +1,6 @@
 ﻿using Dsw2025Tpi.Application.Dtos;
 using Dsw2025Tpi.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ApplicationException = Dsw2025Tpi.Application.Exceptions.ApplicationException;
 
@@ -7,6 +8,7 @@ namespace Dsw2025Tpi.Api.Controllers
 {
     [ApiController]
     [Route("api/orders")]
+    [Authorize(Roles = "Cliente")]
     public class OrdersController : ControllerBase
     {
         private readonly IOrdersManagementService _service;
@@ -25,7 +27,7 @@ namespace Dsw2025Tpi.Api.Controllers
             try
             {
                 var order = await _service.CreateOrderAsync(request);
-                return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
+                return CreatedAtAction(nameof(GetOrderById), new { id = order.OrderId }, order);
             }
             catch (InvalidOperationException ex)
             {
@@ -36,6 +38,25 @@ namespace Dsw2025Tpi.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllOrders([FromQuery]OrderModel.OrderRequestFilter filter)
+        {
+            try
+            {
+                var result = await _service.GetAllOrdersAsync(filter);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "Fallo inesperaco del servidor");
+            }
+            
+        }
+
+
+
 
         [HttpGet("{id:guid}")]
         public Task<IActionResult> GetOrderById(Guid id)

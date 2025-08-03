@@ -6,14 +6,11 @@ namespace Dsw2025Tpi.Application.Dtos
     {
         public record OrderItemRequest(
             Guid ProductId,
-            int Quantity,
-            string? Name,
-            string? Description,
-            decimal UnitPrice
+            int Quantity
         );
 
         public record Response(
-            Guid Id,
+            Guid OrderItemId,
             Guid ProductId,
             string ProductName,
             string? ProductDescription,

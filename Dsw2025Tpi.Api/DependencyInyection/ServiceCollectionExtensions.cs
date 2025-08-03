@@ -23,8 +23,6 @@ public static class ServiceCollectionExtensions
         // Servicios de aplicación
         services.AddScoped<IProductsManagementService, ProductsManagementService>();
         services.AddScoped<IOrdersManagementService, OrdersManagementService>();
-        services.AddScoped<AuthenticateContext>();  //esto es para que se pueda inyectar el contexto de la base de datos en los servicios de aplicación
-        services.AddScoped<Dsw2025TpiContext>();//esto es para que se pueda inyectar el contexto de la base de datos en los servicios de aplicación  
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IAuthenticateService, AuthenticateService>();
 
@@ -35,6 +33,9 @@ public static class ServiceCollectionExtensions
         {
             options.UseSqlServer(configuration.GetConnectionString("Dsw2025TpiEntities"));
         });
+        services.AddScoped<AuthenticateContext>();  //esto es para que se pueda inyectar el contexto de la base de datos en los servicios de aplicación
+        services.AddScoped<Dsw2025TpiContext>();//esto es para que se pueda inyectar el contexto de la base de datos en los servicios de aplicación  
+
         return services;
     }
     public static IServiceCollection AddJWTServices(this IServiceCollection services, ConfigurationManager configuration)

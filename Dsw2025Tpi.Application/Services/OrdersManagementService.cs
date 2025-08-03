@@ -42,6 +42,9 @@ namespace Dsw2025Tpi.Application.Services
                 if (product.StockQuantity < item.Quantity)
                     throw new InvalidOperationException($"Stock insuficiente para el producto: {product.Name}");
 
+                if (!product.IsActive)
+                    throw new InvalidOperationException($"El producto {product.Name} está desactivado y no puede ser comprado.");
+
                 product.StockQuantity -= item.Quantity;
                 await _repository.Update(product);
 
@@ -79,7 +82,7 @@ namespace Dsw2025Tpi.Application.Services
                 oi.Quantity,
                 oi.Price,
                 oi.Price * oi.Quantity
-            )).ToList();
+            ));
 
             return new OrderModel.Response(
                 order.Id,
@@ -93,6 +96,105 @@ namespace Dsw2025Tpi.Application.Services
             );
         }
 
+        public async Task<IEnumerable<OrderModel.Response>?> GetAllOrdersAsync(OrderModel.OrderRequestFilter filter)
+        {
+            if (filter.CustomerId is null && !filter.Status.HasValue)
+            {
+                var orders = await _repository.GetAll<Order>(nameof(Order.OrderItems),nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
+                return orders?.Select(o => new OrderModel.Response(
+                    o.Id,
+                    o.CustomerId ?? Guid.Empty,
+                    o.ShippingAddress,
+                    o.BillingAddress,
+                    o.Date,
+                    o.TotalAmount,
+                    o.Status.ToString(),
+                    o.OrderItems.Select(oi => new OrderItemModel.Response(
+                        oi.Id,
+                        oi.ProductId,
+                        oi.Product?.Name ?? "",
+                        oi.Product?.Description ?? "",
+                        oi.Quantity,
+                        oi.Price,
+                        oi.Price * oi.Quantity
+                    ))
+                ));
+            }
+            if (filter.CustomerId is not null && !filter.Status.HasValue)
+            {
+                var orders = await _repository.GetFiltered<Order>(o => o.CustomerId == filter.CustomerId,
+                    nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
+                return orders?.Select(o => new OrderModel.Response(
+                    o.Id,
+                    o.CustomerId ?? Guid.Empty,
+                    o.ShippingAddress,
+                    o.BillingAddress,
+                    o.Date,
+                    o.TotalAmount,
+                    o.Status.ToString(),
+                    o.OrderItems.Select(oi => new OrderItemModel.Response(
+                        oi.Id,
+                        oi.ProductId,
+                        oi.Product?.Name ?? "",
+                        oi.Product?.Description ?? "",
+                        oi.Quantity,
+                        oi.Price,
+                        oi.Price * oi.Quantity
+                    ))
+                ));
+            }
+            if (filter.CustomerId is null && filter.Status.HasValue)
+            {
+                var orders = await _repository.GetFiltered<Order>(o => o.Status == filter.Status,
+                    nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
+                return orders?.Select(o => new OrderModel.Response(
+                    o.Id,
+                    o.CustomerId ?? Guid.Empty,
+                    o.ShippingAddress,
+                    o.BillingAddress,
+                    o.Date,
+                    o.TotalAmount,
+                    o.Status.ToString(),
+                    o.OrderItems.Select(oi => new OrderItemModel.Response(
+                        oi.Id,
+                        oi.ProductId,
+                        oi.Product?.Name ?? "",
+                        oi.Product?.Description ?? "",
+                        oi.Quantity,
+                        oi.Price,
+                        oi.Price * oi.Quantity
+                    ))
+                ));
+            }
+            if (filter.CustomerId is not null && filter.Status.HasValue)
+            {
+                var orders = await _repository.GetFiltered<Order>(o => o.CustomerId == filter.CustomerId && o.Status == filter.Status,
+                nameof(Order.OrderItems), // incluye los ítems de la orden
+                nameof(Order.OrderItems) + "." + nameof(OrderItem.Product) // incluye el producto dentro de los ítems
+                );
+
+                return orders?.Select(o => new OrderModel.Response(
+                    o.Id,
+                    o.CustomerId ?? Guid.Empty,
+                    o.ShippingAddress,
+                    o.BillingAddress,
+                    o.Date,
+                    o.TotalAmount,
+                    o.Status.ToString(),
+                    o.OrderItems.Select(oi => new OrderItemModel.Response(
+                        oi.Id,
+                        oi.ProductId,
+                        oi.Product?.Name ?? "",
+                        oi.Product?.Description ?? "",
+                        oi.Quantity,
+                        oi.Price,
+                        oi.Price * oi.Quantity
+                    ))
+                ));
+
+            }
+            throw new Exception("Fallo en el filtro.");
+        }
     }
 }
 
