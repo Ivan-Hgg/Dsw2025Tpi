@@ -1,0 +1,15 @@
+﻿using Dsw2025Tpi.Application.Dtos;
+using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Dsw2025Tpi.Application.Interfaces;
+
+public interface IAuthenticateService
+{
+    Task<IdentityResult> RegisterAsync(RegisterModel model);
+    Task<IdentityResult> LoginAsync(LoginModel model);
+}

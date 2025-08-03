@@ -4,13 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using Dsw2025Tpi.Application.Interfaces;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Dsw2025Tpi.Application.Services;
 
-public class JwtTokenService
+public class JwtTokenService : IJwtTokenService
 {
     private readonly IConfiguration _config;
 

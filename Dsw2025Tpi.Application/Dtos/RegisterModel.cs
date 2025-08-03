@@ -6,4 +6,8 @@ using System.Threading.Tasks;
 
 namespace Dsw2025Tpi.Application.Dtos;
 
-public record LoginModel(string Username, string Password, string role);
+public record RegisterModel(
+    CustomerModel.CustomerModelRequest Customer,
+    string Password
+
+);

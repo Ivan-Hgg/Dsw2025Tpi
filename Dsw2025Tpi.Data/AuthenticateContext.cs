@@ -20,10 +20,21 @@ public class AuthenticateContext : IdentityDbContext<IdentityUserExtension>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.Ignore<Customer>();
+        builder.Ignore<Order>();
+        builder.Ignore<OrderItem>();
+        builder.Ignore<Product>();
+        builder.Ignore<EntityBase>();
+        builder.Entity<Customer>(e =>
+        {
+            e.HasKey(c => c.Id);
+            e.ToTable("Customers", tb => tb.ExcludeFromMigrations());
+
+        });
 
         builder.Entity<IdentityUserExtension>(b => { 
             b.ToTable("Usuarios");
-            b.HasOne(c=> c.Customer)
+            b.HasOne<Customer>()
                 .WithOne()
                 .HasForeignKey<IdentityUserExtension>(c => c.CustomerId)
                 .OnDelete(DeleteBehavior.Cascade);

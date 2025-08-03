@@ -4,7 +4,7 @@ namespace Dsw2025Tpi.Application.Dtos
 {
     public static class CustomerModel
     {
-        public record Request(
+        public record CustomerModelRequest(
             string Name,
             string Email,
             string PhoneNumber
