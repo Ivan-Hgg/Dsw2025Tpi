@@ -21,7 +21,7 @@ public class IdentityUserExtentionService
         _dsw2025TpiContext = dominioContext ?? throw new ArgumentNullException(nameof(dominioContext));
     }
     /*
-    public async Task<Customer> GetCustomerOfUser(IdentityUser userr)
+    public async Task<Customer> GetCustomerOfUser(IdentityUserExtension user)
     {
         
     }

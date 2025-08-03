@@ -54,7 +54,7 @@ public class AuthenticateService : IAuthenticateService
         if (existPhoneNumber !=null) throw new DuplicatedEntityException($"Un cliente ya fue registrado el numero de telefono: {model.Customer.PhoneNumber}");
         var customer = new Customer(model.Customer.Name, model.Customer.Email, model.Customer.PhoneNumber);
         
-        var user = new IdentityUserExtension { CustomerId = customer.Id, UserName = model.Customer.Email, Email = model.Customer.Email };
+        var user = new IdentityUserExtension { CustomerId = customer.Id, UserName = model.Customer.Name, Email = model.Customer.Email, PhoneNumber= model.Customer.PhoneNumber };
         await _repository.Add(customer);
         var result = await _userManager.CreateAsync(user, model.Password);
 
