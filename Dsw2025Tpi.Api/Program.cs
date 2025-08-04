@@ -2,6 +2,7 @@ using Dsw2025Tpi.Api.DependencyInyection;
 using Dsw2025Tpi.Data;
 using Dsw2025Tpi.Data.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
@@ -63,7 +64,12 @@ public class Program
             dbContext.Database.Migrate(); // Aplica migraciones pendientes  
             dbContext.SeedDatabase();     // Carga los datos desde los JSON  
 
-        }
+        }/*
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            await DbContextExtensions.SeedRolesAsync(roleManager);
+        }*/
 
         // Configure the HTTP request pipeline.  
         if (app.Environment.IsDevelopment())

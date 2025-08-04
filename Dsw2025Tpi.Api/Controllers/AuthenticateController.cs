@@ -14,18 +14,10 @@ namespace Dsw2025Tpi.Api.Controllers;
 [Route("api/auth")]
 public class AuthenticateController : ControllerBase
 {
-    private readonly UserManager<IdentityUserExtension> _userManager;
-    private readonly SignInManager<IdentityUserExtension> _signInManager;
-    private readonly IJwtTokenService _jwtTokenService;
-    private readonly IAuthenticateService _authenticateService;
+        private readonly IAuthenticateService _authenticateService;
 
-    public AuthenticateController(UserManager<IdentityUserExtension> userManager,
-        SignInManager<IdentityUserExtension> signInManager,
-        IJwtTokenService jwtTokenService, IAuthenticateService authenticateService)
+    public AuthenticateController(IAuthenticateService authenticateService)
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _jwtTokenService = jwtTokenService;
         _authenticateService = authenticateService;
     }
 
@@ -48,12 +40,11 @@ public class AuthenticateController : ControllerBase
     }
     
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterModel model)
+    public async Task<IActionResult> Register([FromBody] RegisterModelRequest model)
     {
         try
         {
             var result = await _authenticateService.RegisterAsync(model);
-            if (!result.Succeeded) return BadRequest(result.Errors);
             return StatusCode(201, result);
         }
         catch (InvalidOperationException ex)

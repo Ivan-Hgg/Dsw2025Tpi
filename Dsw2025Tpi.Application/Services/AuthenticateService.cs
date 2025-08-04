@@ -31,33 +31,61 @@ public class AuthenticateService : IAuthenticateService
     }
     public async Task<LoginModelResponse> LoginAsync(LoginModelRequest model)
     {
-        string rol=model.role;
+        
         if(string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrWhiteSpace(model.Password))
             throw new ArgumentException("El nombre de usuario y la contraseña son obligatorios");
-        if(string.IsNullOrWhiteSpace(model.role)) rol="Cliente";
+        
 
         var user = await _userManager.FindByNameAsync(model.Username);
         if (user == null) throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded) throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
-        var token = _jwtTokenService.GenerateToken(model.Username, rol);
+        var token = _jwtTokenService.GenerateToken(model.Username, model.role);
         return new LoginModelResponse(token); 
     }
 
-    public async Task<IdentityResult> RegisterAsync(RegisterModel model)
+    public async Task<RegisterModelResponse> RegisterAsync(RegisterModelRequest model)
     {
-        CustomerValidator.Validate(model.Customer);
-        var existmail = await _repository.First<Customer>(c => c.Email == model.Customer.Email);
-        var existPhoneNumber = await _repository.First<Customer>(c => c.PhoneNumber == model.Customer.PhoneNumber);
-        if (existmail !=null) throw new DuplicatedEntityException($"Un cliente ya fue registrado con el EMAIL: {model.Customer.Email}");
-        if (existPhoneNumber !=null) throw new DuplicatedEntityException($"Un cliente ya fue registrado el numero de telefono: {model.Customer.PhoneNumber}");
-        var customer = new Customer(model.Customer.Name, model.Customer.Email, model.Customer.PhoneNumber);
-        
-        var user = new IdentityUserExtension { CustomerId = customer.Id, UserName = model.Customer.Name, Email = model.Customer.Email, PhoneNumber= model.Customer.PhoneNumber };
-        await _repository.Add(customer);
-        var result = await _userManager.CreateAsync(user, model.Password);
+        AuthenticateValidator.ValidateRegisterModel(model);
 
-        return result;
+        var existUser = await _userManager.FindByNameAsync(model.Username);
+        if (existUser != null) throw new DuplicatedEntityException($"El nombre de usuario {model.Username} ya existe.");
+
+        var existmail = await _repository.First<Customer>(c => c.Email == model.Customer.Email);
+        if (existmail != null) throw new DuplicatedEntityException($"Un cliente ya fue registrado con el EMAIL: {model.Customer.Email}");
+
+        var existPhoneNumber = await _repository.First<Customer>(c => c.PhoneNumber == model.Customer.PhoneNumber);
+        if (existPhoneNumber != null) throw new DuplicatedEntityException($"Un cliente ya fue registrado el numero de telefono: {model.Customer.PhoneNumber}");
+
+        var customer = new Customer(model.Customer.Name, model.Customer.Email, model.Customer.PhoneNumber);
+        var user = new IdentityUserExtension { CustomerId = customer.Id, UserName = model.Username, Email = model.Customer.Email, PhoneNumber= model.Customer.PhoneNumber };
+
+        var resultCustomer=await _repository.Add(customer);
+        if(resultCustomer is null)
+        {
+            throw new InvalidOperationException("Error al crear el cliente");
+        }
+
+        var result = await _userManager.CreateAsync(user, model.Password);
+        if (!result.Succeeded)
+        {
+            await _repository.Delete(customer);
+            throw new InvalidOperationException("Error al crear el usuario");
+        }
+        var roleResult = await _userManager.AddToRoleAsync(user, model.Role.ToUpper());
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+            await _repository.Delete(customer);
+            throw new InvalidOperationException("Error Asignando Rol al usuario");
+        }
+
+
+
+        return new RegisterModelResponse(
+            customer.Id, 
+            user.UserName,
+            model.Role.ToUpper());
     }
 }
