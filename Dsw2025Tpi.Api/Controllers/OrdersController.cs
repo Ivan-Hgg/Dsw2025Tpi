@@ -57,13 +57,25 @@ namespace Dsw2025Tpi.Api.Controllers
 
         }
 
-
-
-
         [HttpGet("{id:guid}")]
-        public Task<IActionResult> GetOrderById(Guid id)
+        [AllowAnonymous]
+        public async Task<IActionResult> GetOrderById(Guid id)
         {
-            return Task.FromResult<IActionResult>(Ok());
+            try
+            {
+                var result = await _service.GetOrderByIdAsync(id);
+                return Ok(result);
+
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+
         }
 
 
@@ -75,7 +87,6 @@ namespace Dsw2025Tpi.Api.Controllers
             {
                 var result = await _service.UpdateOrderStatusAsync(id, status);
                 return Ok(result);
-
             }
             catch (ArgumentException ex)
             {
@@ -84,9 +95,6 @@ namespace Dsw2025Tpi.Api.Controllers
             {
                 return NotFound(ex.Message);
             }
-
-
-
         }
     }
 }

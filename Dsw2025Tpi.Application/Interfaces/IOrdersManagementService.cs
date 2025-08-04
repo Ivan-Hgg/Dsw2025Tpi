@@ -6,6 +6,7 @@ namespace Dsw2025Tpi.Application.Interfaces
     {
         Task<OrderModel.Response> CreateOrderAsync(OrderModel.OrderRequest request);
         Task<IEnumerable<OrderModel.Response>?> GetAllOrdersAsync(OrderModel.OrderRequestFilter filter);
-        Task<OrderModel.Response?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status);
+        Task<OrderModel.ResponseStatus?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status);
+        Task<OrderModel.Response?> GetOrderByIdAsync(Guid OrderId);
     }
 }

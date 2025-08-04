@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dsw2025Tpi.Application.Exceptions;
+using System.Formats.Asn1;
 
 namespace Dsw2025Tpi.Application.Services
 {
@@ -96,12 +97,11 @@ namespace Dsw2025Tpi.Application.Services
                 responseItems
             );
         }
-
         public async Task<IEnumerable<OrderModel.Response>?> GetAllOrdersAsync(OrderModel.OrderRequestFilter filter)
         {
             if (filter.CustomerId is null && !filter.Status.HasValue)
             {
-                var orders = await _repository.GetAll<Order>(nameof(Order.OrderItems),nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
+                var orders = await _repository.GetAll<Order>(nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -196,18 +196,28 @@ namespace Dsw2025Tpi.Application.Services
             }
             throw new Exception("Fallo en el filtro.");
         }
-
-        public async Task<OrderModel.Response?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status)
+        public async Task<OrderModel.ResponseStatus?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status)
         {
-            if(string.IsNullOrWhiteSpace(status.newStatus)) throw new ArgumentException("El nuevo estado no puede ser nulo o vacío.");
+            if (string.IsNullOrWhiteSpace(status.newStatus)) throw new ArgumentException("El nuevo estado no puede ser nulo o vacío.");
 
             var order = await _repository.GetById<Order>(OrderId, nameof(Order.OrderItems), // incluye los ítems de la orden
                 nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) // incluye el producto dentro de los ítems
                 ?? throw new EntityNotFoundException($"Orden no encontrada: {OrderId}");
-            order.Status= Enum.TryParse<OrderStatus>(status.newStatus, true, out var newStatus)
+            order.Status = Enum.TryParse<OrderStatus>(status.newStatus, true, out var newStatus)
                 ? newStatus
                 : throw new ArgumentException($"Estado de orden inválido: {status.newStatus}");
             await _repository.Update(order);
+            return new OrderModel.ResponseStatus(
+                order.Id,
+                order.Status.ToString()
+            );
+        }
+
+        public async Task<OrderModel.Response?> GetOrderByIdAsync(Guid id)
+        {
+            var order = await _repository.GetById<Order>(id, nameof(Order.OrderItems), // incluye los ítems de la orden
+                nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) // incluye el producto dentro de los ítems
+                ?? throw new EntityNotFoundException($"Orden no encontrada: {id}");
             return new OrderModel.Response(
                 order.Id,
                 order.CustomerId ?? Guid.Empty,
@@ -226,6 +236,8 @@ namespace Dsw2025Tpi.Application.Services
                     oi.Price * oi.Quantity
                 ))
             );
+
+
         }
     }
 }

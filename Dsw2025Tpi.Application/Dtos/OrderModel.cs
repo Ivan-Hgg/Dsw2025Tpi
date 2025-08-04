@@ -31,6 +31,10 @@ namespace Dsw2025Tpi.Application.Dtos
             decimal TotalAmount,
             string Status,
             IEnumerable<OrderItemModel.Response> OrderItems
+        ); 
+        public record ResponseStatus(
+            Guid OrderId,
+            string Status
         );
     }
 }
