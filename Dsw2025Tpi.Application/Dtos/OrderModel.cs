@@ -14,8 +14,12 @@ namespace Dsw2025Tpi.Application.Dtos
         public record OrderRequestFilter(
             Guid? CustomerId,
             OrderStatus? Status,
-            int PageNumber,
-            int PageSize
+            int? PageNumber,
+            int? PageSize
+        );
+
+        public record OrderRequestStatus(
+            string newStatus
         );
 
         public record Response(

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Dsw2025Tpi.Application.Exceptions;
 
 namespace Dsw2025Tpi.Application.Services
 {
@@ -194,6 +195,37 @@ namespace Dsw2025Tpi.Application.Services
 
             }
             throw new Exception("Fallo en el filtro.");
+        }
+
+        public async Task<OrderModel.Response?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status)
+        {
+            if(string.IsNullOrWhiteSpace(status.newStatus)) throw new ArgumentException("El nuevo estado no puede ser nulo o vacío.");
+
+            var order = await _repository.GetById<Order>(OrderId, nameof(Order.OrderItems), // incluye los ítems de la orden
+                nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) // incluye el producto dentro de los ítems
+                ?? throw new EntityNotFoundException($"Orden no encontrada: {OrderId}");
+            order.Status= Enum.TryParse<OrderStatus>(status.newStatus, true, out var newStatus)
+                ? newStatus
+                : throw new ArgumentException($"Estado de orden inválido: {status.newStatus}");
+            await _repository.Update(order);
+            return new OrderModel.Response(
+                order.Id,
+                order.CustomerId ?? Guid.Empty,
+                order.ShippingAddress,
+                order.BillingAddress,
+                order.Date,
+                order.TotalAmount,
+                order.Status.ToString(),
+                order.OrderItems.Select(oi => new OrderItemModel.Response(
+                    oi.Id,
+                    oi.ProductId,
+                    oi.Product?.Name ?? "",
+                    oi.Product?.Description ?? "",
+                    oi.Quantity,
+                    oi.Price,
+                    oi.Price * oi.Quantity
+                ))
+            );
         }
     }
 }

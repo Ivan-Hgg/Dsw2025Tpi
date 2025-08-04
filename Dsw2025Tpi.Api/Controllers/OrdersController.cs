@@ -1,7 +1,9 @@
 ﻿using Dsw2025Tpi.Application.Dtos;
+using Dsw2025Tpi.Application.Exceptions;
 using Dsw2025Tpi.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection.Metadata;
 using ApplicationException = Dsw2025Tpi.Application.Exceptions.ApplicationException;
 
 namespace Dsw2025Tpi.Api.Controllers
@@ -41,18 +43,18 @@ namespace Dsw2025Tpi.Api.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAllOrders([FromQuery]OrderModel.OrderRequestFilter filter)
+        public async Task<IActionResult> GetAllOrders([FromQuery] OrderModel.OrderRequestFilter filter)
         {
             try
             {
                 var result = await _service.GetAllOrdersAsync(filter);
                 return Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, "Fallo inesperaco del servidor");
             }
-            
+
         }
 
 
@@ -62,6 +64,29 @@ namespace Dsw2025Tpi.Api.Controllers
         public Task<IActionResult> GetOrderById(Guid id)
         {
             return Task.FromResult<IActionResult>(Ok());
+        }
+
+
+        [HttpPatch("{id:guid}/status")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] OrderModel.OrderRequestStatus status)
+        {
+            try
+            {
+                var result = await _service.UpdateOrderStatusAsync(id, status);
+                return Ok(result);
+
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }catch(EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+
+
+
         }
     }
 }
