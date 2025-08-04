@@ -57,7 +57,7 @@ namespace Dsw2025Tpi.Api.Controllers
             }catch(EntityNotFoundException ex) { 
                 return NotFound(ex.Message);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Fallo inesperado del servidor");
             }

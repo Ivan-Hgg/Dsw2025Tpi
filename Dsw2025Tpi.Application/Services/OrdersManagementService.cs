@@ -214,8 +214,7 @@ namespace Dsw2025Tpi.Application.Services
         {
             if (string.IsNullOrWhiteSpace(status.newStatus)) throw new ArgumentException("El nuevo estado no puede ser nulo o vacío.");
 
-            var order = await _repository.GetById<Order>(OrderId, nameof(Order.OrderItems), // incluye los ítems de la orden
-                nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) // incluye el producto dentro de los ítems
+            var order = await _repository.GetById<Order>(OrderId) // incluye el producto dentro de los ítems
                 ?? throw new EntityNotFoundException($"Orden no encontrada: {OrderId}");
             
             order.Status = Enum.TryParse<OrderStatus>(status.newStatus, true, out var newStatus)
