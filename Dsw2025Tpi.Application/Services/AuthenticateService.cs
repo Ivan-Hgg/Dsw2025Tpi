@@ -38,7 +38,9 @@ public class AuthenticateService : IAuthenticateService
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded) throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
-        var role = (await _userManager.GetRolesAsync(user))[0];
+        var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
+        if (role is null)
+            throw new InvalidOperationException("El usuario no tiene roles asignados.");
         var token = _jwtTokenService.GenerateToken(model.Username, role);
         return new LoginModelResponse(token, role); 
     }
