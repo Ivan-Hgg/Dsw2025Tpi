@@ -105,7 +105,11 @@ namespace Dsw2025Tpi.Application.Services
         }
         public async Task<IEnumerable<OrderModel.Response>?> GetAllOrdersAsync(OrderModel.OrderRequestFilter filter)
         {
-            if(filter.CustomerId is not null)
+            var pageNumber = filter.PageNumber ?? 1;
+            var pageSize = filter.PageSize ?? 10;
+            var skip = (pageNumber - 1) * pageSize;
+
+            if (filter.CustomerId is not null)
             {
                 var custId = filter.CustomerId.Value;
                 if (await _repository.GetById<Customer>(custId) is null)
@@ -115,6 +119,7 @@ namespace Dsw2025Tpi.Application.Services
             if (filter.CustomerId is null && !filter.Status.HasValue)
             {
                 var orders = await _repository.GetAll<Order>(nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
+                orders = orders?.Skip(skip).Take(pageSize).ToList();
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -138,7 +143,7 @@ namespace Dsw2025Tpi.Application.Services
             {
                 var orders = await _repository.GetFiltered<Order>(o => o.CustomerId == filter.CustomerId,
                     nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
-                
+                orders = orders?.Skip(skip).Take(pageSize).ToList();
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -162,6 +167,7 @@ namespace Dsw2025Tpi.Application.Services
             {
                 var orders = await _repository.GetFiltered<Order>(o => o.Status == filter.Status,
                     nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
+                orders = orders?.Skip(skip).Take(pageSize).ToList();
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -187,7 +193,7 @@ namespace Dsw2025Tpi.Application.Services
                 nameof(Order.OrderItems), // incluye los ítems de la orden
                 nameof(Order.OrderItems) + "." + nameof(OrderItem.Product) // incluye el producto dentro de los ítems
                 );
-
+                orders = orders?.Skip(skip).Take(pageSize).ToList();
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -210,6 +216,7 @@ namespace Dsw2025Tpi.Application.Services
             }
             throw new Exception();
         }
+
         public async Task<OrderModel.ResponseStatus?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status)
         {
             if (string.IsNullOrWhiteSpace(status.newStatus)) throw new ArgumentException("El nuevo estado no puede ser nulo o vacío.");
