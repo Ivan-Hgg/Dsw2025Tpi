@@ -23,7 +23,13 @@ namespace Dsw2025Tpi.Application.Services
 
         public async Task<OrderModel.Response> CreateOrderAsync(OrderModel.OrderRequest request)
         {
+            if (request == null || request.OrderItems == null || request.OrderItems.Count == 0)
+                throw new ArgumentException("Datos de la orden inválidos o incompletos.");
+
             OrderValidator.Validate(request);
+            
+            if(await _repository.GetById<Customer>(request.CustomerId) is null) 
+                throw new EntityNotFoundException($"El CustomerId ingresado no pertenece a ningun cliente: {request.CustomerId}");
 
             var orderItems = new List<OrderItem>();
             decimal totalAmount = 0;
@@ -39,7 +45,7 @@ namespace Dsw2025Tpi.Application.Services
             {
                 // Incluye el producto para la respuesta
                 var product = await _repository.GetById<Product>(item.ProductId)
-                    ?? throw new InvalidOperationException($"Producto no encontrado: {item.ProductId}");
+                    ?? throw new EntityNotFoundException($"Producto no encontrado: {item.ProductId}");
 
                 if (product.StockQuantity < item.Quantity)
                     throw new InvalidOperationException($"Stock insuficiente para el producto: {product.Name}");
@@ -99,6 +105,13 @@ namespace Dsw2025Tpi.Application.Services
         }
         public async Task<IEnumerable<OrderModel.Response>?> GetAllOrdersAsync(OrderModel.OrderRequestFilter filter)
         {
+            if(filter.CustomerId is not null)
+            {
+                var custId = filter.CustomerId.Value;
+                if (await _repository.GetById<Customer>(custId) is null)
+                    throw new EntityNotFoundException($"El CustomerId ingresado no pertenece a ningun cliente: {filter.CustomerId}");
+            }
+
             if (filter.CustomerId is null && !filter.Status.HasValue)
             {
                 var orders = await _repository.GetAll<Order>(nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
@@ -125,6 +138,7 @@ namespace Dsw2025Tpi.Application.Services
             {
                 var orders = await _repository.GetFiltered<Order>(o => o.CustomerId == filter.CustomerId,
                     nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
+                
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -194,7 +208,7 @@ namespace Dsw2025Tpi.Application.Services
                 ));
 
             }
-            throw new Exception("Fallo en el filtro.");
+            throw new Exception();
         }
         public async Task<OrderModel.ResponseStatus?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status)
         {
@@ -203,9 +217,9 @@ namespace Dsw2025Tpi.Application.Services
             var order = await _repository.GetById<Order>(OrderId, nameof(Order.OrderItems), // incluye los ítems de la orden
                 nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) // incluye el producto dentro de los ítems
                 ?? throw new EntityNotFoundException($"Orden no encontrada: {OrderId}");
+            
             order.Status = Enum.TryParse<OrderStatus>(status.newStatus, true, out var newStatus)
-                ? newStatus
-                : throw new ArgumentException($"Estado de orden inválido: {status.newStatus}");
+                ? newStatus : throw new ArgumentException($"Estado de orden inválido: {status.newStatus}");
             await _repository.Update(order);
             return new OrderModel.ResponseStatus(
                 order.Id,

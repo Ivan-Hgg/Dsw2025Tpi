@@ -23,15 +23,20 @@ namespace Dsw2025Tpi.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrderAsync([FromBody] OrderModel.OrderRequest request)
         {
-            if (request == null || request.OrderItems == null || request.OrderItems.Count == 0)
-                return BadRequest("Datos de la orden inválidos o incompletos.");
-
             try
             {
                 var order = await _service.CreateOrderAsync(request);
-                return CreatedAtAction(nameof(GetOrderById), new { id = order.OrderId }, order);
+                return StatusCode(201, order);
             }
             catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (EntityNotFoundException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -49,10 +54,12 @@ namespace Dsw2025Tpi.Api.Controllers
             {
                 var result = await _service.GetAllOrdersAsync(filter);
                 return Ok(result);
+            }catch(EntityNotFoundException ex) { 
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Fallo inesperaco del servidor");
+                return StatusCode(500, "Fallo inesperado del servidor");
             }
 
         }
@@ -66,10 +73,6 @@ namespace Dsw2025Tpi.Api.Controllers
                 var result = await _service.GetOrderByIdAsync(id);
                 return Ok(result);
 
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
             }
             catch (EntityNotFoundException ex)
             {
@@ -88,11 +91,10 @@ namespace Dsw2025Tpi.Api.Controllers
                 var result = await _service.UpdateOrderStatusAsync(id, status);
                 return Ok(result);
             }
-            catch (ArgumentException ex)
-            {
+            catch (ArgumentException ex){
                 return BadRequest(ex.Message);
-            }catch(EntityNotFoundException ex)
-            {
+            }
+            catch(EntityNotFoundException ex){
                 return NotFound(ex.Message);
             }
         }
