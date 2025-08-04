@@ -1,4 +1,5 @@
 ﻿using Dsw2025Tpi.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using System.Text.Json;
 
 namespace Dsw2025Tpi.Data.Helpers;
@@ -9,6 +10,18 @@ public static class DbContextExtensions
     {
         PropertyNameCaseInsensitive = true,
     };
+
+    public static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+    {
+        var roles = new[] { "ADMINISTRADOR", "CLIENTE"};
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+    }
 
     public static void SeedDatabase(this Dsw2025TpiContext context)
     {

@@ -10,6 +10,6 @@ namespace Dsw2025Tpi.Application.Interfaces;
 
 public interface IAuthenticateService
 {
-    Task<IdentityResult> RegisterAsync(RegisterModel model);
+    Task<RegisterModelResponse> RegisterAsync(RegisterModelRequest model);
     Task<LoginModelResponse> LoginAsync(LoginModelRequest model);
 }

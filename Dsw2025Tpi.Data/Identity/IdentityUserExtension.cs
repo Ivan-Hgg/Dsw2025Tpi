@@ -11,5 +11,4 @@ namespace Dsw2025Tpi.Data.Identity;
 public class IdentityUserExtension : IdentityUser
 {
     public Guid CustomerId { get; set; } // Fk
-    //public Customer? Customer { get; set; } // Navigation property
 }
