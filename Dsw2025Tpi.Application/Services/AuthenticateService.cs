@@ -70,8 +70,11 @@ public class AuthenticateService : IAuthenticateService
         var result = await _userManager.CreateAsync(user, model.Password);
         if (!result.Succeeded)
         {
+
+            IEnumerable<string> errorMessages = result.Errors.Select(e => e.Description);
+            string fullErrorMessage = string.Join("\n", errorMessages);
             await _repository.Delete(customer);
-            throw new InvalidOperationException("Error al crear el usuario");
+            throw new InvalidOperationException(fullErrorMessage); 
         }
         var roleResult = await _userManager.AddToRoleAsync(user, model.Role.ToUpper());
         if (!roleResult.Succeeded)
@@ -86,6 +89,7 @@ public class AuthenticateService : IAuthenticateService
         return new RegisterModelResponse(
             customer.Id, 
             user.UserName,
-            model.Role.ToUpper());
+            model.Role.ToUpper()
+        );
     }
 }

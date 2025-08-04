@@ -72,7 +72,12 @@ public static class ServiceCollectionExtensions
         {
             options.Password = new PasswordOptions
             {
-                RequiredLength = 8
+                RequiredLength = 8,
+                RequiredUniqueChars = 4,
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+                RequireNonAlphanumeric = true
             };
 
         })

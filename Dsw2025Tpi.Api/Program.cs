@@ -12,7 +12,7 @@ namespace Dsw2025Tpi.Api;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -64,12 +64,12 @@ public class Program
             dbContext.Database.Migrate(); // Aplica migraciones pendientes  
             dbContext.SeedDatabase();     // Carga los datos desde los JSON  
 
-        }/*
+        }
         using (var scope = app.Services.CreateScope())
         {
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             await DbContextExtensions.SeedRolesAsync(roleManager);
-        }*/
+        }
 
         // Configure the HTTP request pipeline.  
         if (app.Environment.IsDevelopment())
