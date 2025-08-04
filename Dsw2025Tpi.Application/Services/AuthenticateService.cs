@@ -31,23 +31,21 @@ public class AuthenticateService : IAuthenticateService
     }
     public async Task<LoginModelResponse> LoginAsync(LoginModelRequest model)
     {
-        
-        if(string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrWhiteSpace(model.Password))
-            throw new ArgumentException("El nombre de usuario y la contraseña son obligatorios");
-        
+        AuthenticateValidator.ValidateLoginModelRequest(model);
 
         var user = await _userManager.FindByNameAsync(model.Username);
         if (user == null) throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded) throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
-        var token = _jwtTokenService.GenerateToken(model.Username, model.role);
-        return new LoginModelResponse(token); 
+        var role = (await _userManager.GetRolesAsync(user))[0];
+        var token = _jwtTokenService.GenerateToken(model.Username, role);
+        return new LoginModelResponse(token, role); 
     }
 
     public async Task<RegisterModelResponse> RegisterAsync(RegisterModelRequest model)
     {
-        AuthenticateValidator.ValidateRegisterModel(model);
+        AuthenticateValidator.ValidateRegisterModelRequest(model);
 
         var existUser = await _userManager.FindByNameAsync(model.Username);
         if (existUser != null) throw new DuplicatedEntityException($"El nombre de usuario {model.Username} ya existe.");
@@ -83,8 +81,6 @@ public class AuthenticateService : IAuthenticateService
             await _repository.Delete(customer);
             throw new InvalidOperationException("Error Asignando Rol al usuario");
         }
-
-
 
         return new RegisterModelResponse(
             customer.Id, 

@@ -10,7 +10,7 @@ namespace Dsw2025Tpi.Api.Controllers
 {
     [ApiController]
     [Route("api/orders")]
-    [Authorize(Roles = "Cliente")]
+    [Authorize(Roles = "CLIENTE")]
     public class OrdersController : ControllerBase
     {
         private readonly IOrdersManagementService _service;
@@ -47,7 +47,6 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> GetAllOrders([FromQuery] OrderModel.OrderRequestFilter filter)
         {
             try

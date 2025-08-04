@@ -10,7 +10,7 @@ namespace Dsw2025Tpi.Application.Validation;
 
 public static class AuthenticateValidator
 {
-    public static void ValidateRegisterModel(RegisterModelRequest model)
+    public static void ValidateRegisterModelRequest(RegisterModelRequest model)
     {
         if (model == null)
             throw new InvalidOperationException("El modelo de registro no puede ser nulo.");
@@ -18,6 +18,13 @@ public static class AuthenticateValidator
         CustomerValidator.Validate(model.Customer);
         ValidatePassword(model.Password);
         ValidateRole(model.Role);
+    }
+
+    public static void ValidateLoginModelRequest(LoginModelRequest model) 
+    {
+        if (model == null) throw new InvalidOperationException("El modelo de logeo no puede ser nulo");
+        ValidateUsername(model.Username);
+        ValidatePassword(model.Password);
     }
 
     public static void ValidateUsername(string username)

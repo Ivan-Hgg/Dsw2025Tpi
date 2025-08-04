@@ -27,13 +27,13 @@ public class AuthenticateController : ControllerBase
         try
         {
             var token= await _authenticateService.LoginAsync(request);
-            return Ok(new { token });
+            return Ok(token);
         }
         catch (UnauthorizedAccessException ex)
         {
             return Unauthorized(ex.Message);
         }
-        catch (ArgumentException ex)
+        catch (InvalidOperationException ex)
         {
             return BadRequest(ex.Message);
         }

@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace Dsw2025Tpi.Application.Dtos;
 
-public record LoginModelRequest(string Username, string Password, string role);
-public record LoginModelResponse(string Token);
+public record LoginModelRequest(string Username, string Password);
+public record LoginModelResponse(string Token, string role);
