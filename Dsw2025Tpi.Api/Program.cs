@@ -56,6 +56,7 @@ public class Program
         builder.Services.AddDomainServices(builder.Configuration);
         builder.Services.AddJWTServices(builder.Configuration);
 
+        //mostrar los enum como sus valores de string
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
             {

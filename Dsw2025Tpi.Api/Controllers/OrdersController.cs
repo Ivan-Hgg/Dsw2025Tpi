@@ -10,7 +10,6 @@ namespace Dsw2025Tpi.Api.Controllers
 {
     [ApiController]
     [Route("api/orders")]
-    [Authorize(Roles = "CLIENTE")]
     public class OrdersController : ControllerBase
     {
         private readonly IOrdersManagementService _service;
@@ -21,6 +20,7 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "CLIENTE")]
         public async Task<IActionResult> CreateOrderAsync([FromBody] OrderModel.OrderRequest request)
         {
             try
@@ -47,7 +47,7 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize(Roles ="ADMINISTRADOR, CLIENTE")]
         public async Task<IActionResult> GetAllOrders([FromQuery] OrderModel.OrderRequestFilter filter)
         {
             try
@@ -65,7 +65,7 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        [AllowAnonymous]
+        [Authorize(Roles = "ADMINISTRADOR, CLIENTE")]
         public async Task<IActionResult> GetOrderById(Guid id)
         {
             try
@@ -84,7 +84,7 @@ namespace Dsw2025Tpi.Api.Controllers
 
 
         [HttpPatch("{id:guid}/status")]
-        [AllowAnonymous]
+        [Authorize(Roles ="ADMINISTRADOR")]
         public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] OrderModel.OrderRequestStatus status)
         {
             try

@@ -10,7 +10,7 @@ namespace Dsw2025Tpi.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles ="Administrador")]
+[Authorize(Roles ="ADMINISTRADOR")]
 public class ProductsController : ControllerBase
 {
     private readonly IProductsManagementService _service;
@@ -24,9 +24,15 @@ public class ProductsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAllProductsAsync()
     {
-        var products = await _service.GetAllProducts();
-        if (products == null || !products.Any()) return NoContent();
-        return Ok(products);
+        try
+        {
+            var products = await _service.GetAllProducts();
+            return Ok(products);
+        }catch(EntityNotFoundException)
+        {
+            return NoContent();
+        }
+        
     }
 
     [HttpGet("{id:guid}")]
@@ -51,14 +57,11 @@ public class ProductsController : ControllerBase
         {
             var result = await _service.AddProduct(request);
             return StatusCode(201, result);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (DuplicatedEntityException ex)
-        {
+        }catch (DuplicatedEntityException ex){
             return Conflict(ex.Message);
+        }
+        catch (BadRequestException ex){
+            return BadRequest(ex.Message);
         }
     }
 
@@ -76,6 +79,9 @@ public class ProductsController : ControllerBase
             return NotFound(ex.Message);
         }
         catch (BadRequestException ex)
+        {
+            return BadRequest(ex.Message);
+        }catch(DuplicatedEntityException ex)
         {
             return BadRequest(ex.Message);
         }
