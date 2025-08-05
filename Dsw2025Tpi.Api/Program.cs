@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
 
 namespace Dsw2025Tpi.Api;
 
@@ -54,6 +55,13 @@ public class Program
         builder.Services.AddIdentityServices(builder.Configuration);
         builder.Services.AddDomainServices(builder.Configuration);
         builder.Services.AddJWTServices(builder.Configuration);
+
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+
 
         var app = builder.Build();
 
