@@ -219,18 +219,36 @@ namespace Dsw2025Tpi.Application.Services
 
         public async Task<OrderModel.ResponseStatus?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status)
         {
-            if (string.IsNullOrWhiteSpace(status.newStatus)) throw new ArgumentException("El nuevo estado no puede ser nulo o vacío.");
-
-            var order = await _repository.GetById<Order>(OrderId) // incluye el producto dentro de los ítems
+            if(OrderId == Guid.Empty)
+                throw new ArgumentException("El OrderId no puede ser nulo o vacío.");
+            var order = await _repository.GetById<Order>(OrderId, nameof(Order.OrderItems), // incluye los ítems de la orden
+                nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) 
                 ?? throw new EntityNotFoundException($"Orden no encontrada: {OrderId}");
-            
-            order.Status = Enum.TryParse<OrderStatus>(status.newStatus, true, out var newStatus)
-                ? newStatus : throw new ArgumentException($"Estado de orden inválido: {status.newStatus}");
+
+            order.Status = OrderValidator.ValidateNewStatus(status, order.Status);
             await _repository.Update(order);
+            if (order.Status == OrderStatus.CANCELLED)
+            {
+                await UpdateStockOnOrderCancellation(order);
+            }
+
             return new OrderModel.ResponseStatus(
                 order.Id,
                 order.Status.ToString()
             );
+        }
+
+        private async Task UpdateStockOnOrderCancellation(Order order)
+        {
+            foreach (var item in order.OrderItems)
+            {
+                var product = await _repository.GetById<Product>(item.ProductId);
+                if (product != null)
+                {
+                    product.StockQuantity += item.Quantity;
+                    await _repository.Update(product);
+                }
+            }
         }
 
         public async Task<OrderModel.Response?> GetOrderByIdAsync(Guid id)

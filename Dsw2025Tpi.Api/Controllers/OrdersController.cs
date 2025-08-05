@@ -47,6 +47,7 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllOrders([FromQuery] OrderModel.OrderRequestFilter filter)
         {
             try
@@ -92,9 +93,11 @@ namespace Dsw2025Tpi.Api.Controllers
             }
             catch (ArgumentException ex){
                 return BadRequest(ex.Message);
-            }
-            catch(EntityNotFoundException ex){
+            }catch(EntityNotFoundException ex){
                 return NotFound(ex.Message);
+            }catch(InvalidStatusTransitionException ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }
