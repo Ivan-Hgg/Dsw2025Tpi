@@ -72,6 +72,8 @@ public class Program
             var dbContext = scope.ServiceProvider.GetRequiredService<Dsw2025TpiContext>();
             dbContext.Database.Migrate(); // Aplica migraciones pendientes  
             dbContext.SeedDatabase();     // Carga los datos desde los JSON  
+            var dbContextAuthenticate = scope.ServiceProvider.GetRequiredService<AuthenticateContext>();
+            dbContextAuthenticate.Database.Migrate();
 
         }
         using (var scope = app.Services.CreateScope())
