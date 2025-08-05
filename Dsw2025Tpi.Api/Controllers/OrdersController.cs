@@ -54,7 +54,10 @@ namespace Dsw2025Tpi.Api.Controllers
             {
                 var result = await _service.GetAllOrdersAsync(filter);
                 return Ok(result);
-            }catch(EntityNotFoundException ex) { 
+            }catch(NoContentException) { 
+                return NoContent();
+            }catch(EntityNotFoundException ex)
+            {
                 return NotFound(ex.Message);
             }
             catch (Exception)

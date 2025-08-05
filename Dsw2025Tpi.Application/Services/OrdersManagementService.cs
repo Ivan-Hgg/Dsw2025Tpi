@@ -119,7 +119,8 @@ namespace Dsw2025Tpi.Application.Services
             if (filter.CustomerId is null && !filter.Status.HasValue)
             {
                 var orders = await _repository.GetAll<Order>(nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
-                orders = orders?.Skip(skip).Take(pageSize).ToList();
+                orders = orders?.Skip(skip).Take(pageSize);
+                if(orders is null || !orders.Any()) throw new NoContentException("No se encontraron órdenes.");
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -143,7 +144,8 @@ namespace Dsw2025Tpi.Application.Services
             {
                 var orders = await _repository.GetFiltered<Order>(o => o.CustomerId == filter.CustomerId,
                     nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
-                orders = orders?.Skip(skip).Take(pageSize).ToList();
+                orders = orders?.Skip(skip).Take(pageSize);
+                if (orders is null || !orders.Any()) throw new NoContentException("No se encontraron órdenes.");
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -167,7 +169,8 @@ namespace Dsw2025Tpi.Application.Services
             {
                 var orders = await _repository.GetFiltered<Order>(o => o.Status == filter.Status,
                     nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
-                orders = orders?.Skip(skip).Take(pageSize).ToList();
+                orders = orders?.Skip(skip).Take(pageSize);
+                if (orders is null || !orders.Any()) throw new NoContentException("No se encontraron órdenes.");
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -193,7 +196,8 @@ namespace Dsw2025Tpi.Application.Services
                 nameof(Order.OrderItems), // incluye los ítems de la orden
                 nameof(Order.OrderItems) + "." + nameof(OrderItem.Product) // incluye el producto dentro de los ítems
                 );
-                orders = orders?.Skip(skip).Take(pageSize).ToList();
+                orders = orders?.Skip(skip).Take(pageSize);
+                if (orders is null || !orders.Any()) throw new NoContentException("No se encontraron órdenes.");
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,

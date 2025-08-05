@@ -16,8 +16,8 @@ namespace Dsw2025Tpi.Application.Validation
             ValidateName(request.Name);
             ValidateDescription(request.Description);
 
-            if (request.CurrentUnitPrice < 0)
-                throw new BadRequestException("El precio debe ser un valor positivo.");
+            if (request.CurrentUnitPrice <= 0)
+                throw new BadRequestException("El precio debe ser mayor a cero.");
 
             if (request.StockQuantity < 0)
                 throw new BadRequestException("El stock debe ser un valor positivo.");
