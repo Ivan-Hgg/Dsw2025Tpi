@@ -253,7 +253,10 @@ namespace Dsw2025Tpi.Application.Services
 
         public async Task<OrderModel.Response?> GetOrderByIdAsync(Guid id)
         {
-            var order = await _repository.GetById<Order>(id, nameof(Order.OrderItems), // incluye los ítems de la orden
+            if(id==Guid.Empty) throw new ArgumentException("El OrderId no puede vacío.");
+
+            var order = await _repository.GetById<Order>(id, 
+                nameof(Order.OrderItems), // incluye los ítems de la orden
                 nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) // incluye el producto dentro de los ítems
                 ?? throw new EntityNotFoundException($"Orden no encontrada: {id}");
             return new OrderModel.Response(

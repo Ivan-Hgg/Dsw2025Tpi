@@ -72,11 +72,12 @@ namespace Dsw2025Tpi.Api.Controllers
             {
                 var result = await _service.GetOrderByIdAsync(id);
                 return Ok(result);
-
             }
-            catch (EntityNotFoundException ex)
-            {
+            catch (EntityNotFoundException ex){
                 return NotFound(ex.Message);
+            }
+            catch(ArgumentException ex){
+                return BadRequest(ex.Message);
             }
 
         }
