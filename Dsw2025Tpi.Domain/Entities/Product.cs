@@ -17,7 +17,7 @@ public class Product : EntityBase
         set
         {
             if (value <= 0)
-                throw new ArgumentException("El precio debe ser mayor a 0.");
+                throw new BadRequestException("El precio debe ser mayor a 0.");
             _currentUnitPrice = value;
         }
     }
@@ -29,7 +29,7 @@ public class Product : EntityBase
         set
         {
             if (value < 0)
-                throw new ArgumentException("La cantidad de stock no puede ser negativa.");
+                throw new BadRequestException("La cantidad de stock no puede ser negativa.");
             _stockQuantity = value;
         }
     }

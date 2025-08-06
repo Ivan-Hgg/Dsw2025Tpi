@@ -24,7 +24,7 @@ namespace Dsw2025Tpi.Application.Services
         public async Task<OrderModel.Response> CreateOrderAsync(OrderModel.OrderRequest request)
         {
             if (request == null || request.OrderItems == null || request.OrderItems.Count == 0)
-                throw new ArgumentException("Datos de la orden inválidos o incompletos.");
+                throw new BadRequestException("Datos de la orden inválidos o incompletos.");
 
             OrderValidator.Validate(request);
             
@@ -48,10 +48,10 @@ namespace Dsw2025Tpi.Application.Services
                     ?? throw new EntityNotFoundException($"Producto no encontrado: {item.ProductId}");
 
                 if (product.StockQuantity < item.Quantity)
-                    throw new InvalidOperationException($"Stock insuficiente para el producto: {product.Name}");
+                    throw new BadRequestException($"Stock insuficiente para el producto: {product.Name}");
 
                 if (!product.IsActive)
-                    throw new InvalidOperationException($"El producto {product.Name} está desactivado y no puede ser comprado.");
+                    throw new BadRequestException($"El producto {product.Name} está desactivado y no puede ser comprado.");
 
                 product.StockQuantity -= item.Quantity;
                 await _repository.Update(product);
@@ -120,7 +120,6 @@ namespace Dsw2025Tpi.Application.Services
             {
                 var orders = await _repository.GetAll<Order>(nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
                 orders = orders?.Skip(skip).Take(pageSize);
-                if(orders is null || !orders.Any()) throw new NoContentException("No se encontraron órdenes.");
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -145,7 +144,6 @@ namespace Dsw2025Tpi.Application.Services
                 var orders = await _repository.GetFiltered<Order>(o => o.CustomerId == filter.CustomerId,
                     nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
                 orders = orders?.Skip(skip).Take(pageSize);
-                if (orders is null || !orders.Any()) throw new NoContentException("No se encontraron órdenes.");
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -170,7 +168,6 @@ namespace Dsw2025Tpi.Application.Services
                 var orders = await _repository.GetFiltered<Order>(o => o.Status == filter.Status,
                     nameof(Order.OrderItems), nameof(Order.OrderItems) + "." + nameof(OrderItem.Product));
                 orders = orders?.Skip(skip).Take(pageSize);
-                if (orders is null || !orders.Any()) throw new NoContentException("No se encontraron órdenes.");
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -197,7 +194,6 @@ namespace Dsw2025Tpi.Application.Services
                 nameof(Order.OrderItems) + "." + nameof(OrderItem.Product) // incluye el producto dentro de los ítems
                 );
                 orders = orders?.Skip(skip).Take(pageSize);
-                if (orders is null || !orders.Any()) throw new NoContentException("No se encontraron órdenes.");
                 return orders?.Select(o => new OrderModel.Response(
                     o.Id,
                     o.CustomerId ?? Guid.Empty,
@@ -224,7 +220,7 @@ namespace Dsw2025Tpi.Application.Services
         public async Task<OrderModel.ResponseStatus?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status)
         {
             if(OrderId == Guid.Empty)
-                throw new ArgumentException("El OrderId no puede ser nulo o vacío.");
+                throw new BadRequestException("El OrderId no puede ser nulo o vacío.");
             var order = await _repository.GetById<Order>(OrderId, nameof(Order.OrderItems), // incluye los ítems de la orden
                 nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) 
                 ?? throw new EntityNotFoundException($"Orden no encontrada: {OrderId}");
@@ -257,7 +253,7 @@ namespace Dsw2025Tpi.Application.Services
 
         public async Task<OrderModel.Response?> GetOrderByIdAsync(Guid id)
         {
-            if(id==Guid.Empty) throw new ArgumentException("El OrderId no puede vacío.");
+            if(id==Guid.Empty) throw new BadRequestException("El OrderId no puede vacío.");
 
             var order = await _repository.GetById<Order>(id, 
                 nameof(Order.OrderItems), // incluye los ítems de la orden

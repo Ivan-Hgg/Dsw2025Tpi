@@ -64,7 +64,7 @@ public class AuthenticateService : IAuthenticateService
         var resultCustomer=await _repository.Add(customer);
         if(resultCustomer is null)
         {
-            throw new InvalidOperationException("Error al crear el cliente");
+            throw new DataInsertException("Error al crear el cliente");
         }
 
         var result = await _userManager.CreateAsync(user, model.Password);
@@ -72,16 +72,16 @@ public class AuthenticateService : IAuthenticateService
         {
 
             IEnumerable<string> errorMessages = result.Errors.Select(e => e.Description);
-            string fullErrorMessage = string.Join("\n", errorMessages);
+            string fullErrorMessage = string.Join("\\n", errorMessages);
             await _repository.Delete(customer);
-            throw new InvalidOperationException(fullErrorMessage); 
+            throw new DataInsertException(fullErrorMessage); 
         }
         var roleResult = await _userManager.AddToRoleAsync(user, model.Role.ToUpper());
         if (!roleResult.Succeeded)
         {
             await _userManager.DeleteAsync(user);
             await _repository.Delete(customer);
-            throw new InvalidOperationException("Error Asignando Rol al usuario");
+            throw new DataInsertException("Error Asignando Rol al usuario");
         }
 
         return new RegisterModelResponse(

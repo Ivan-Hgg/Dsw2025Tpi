@@ -10,30 +10,30 @@ namespace Dsw2025Tpi.Application.Validation
         public static void Validate(OrderModel.OrderRequest request)
         {
             if (request == null)
-                throw new InvalidOperationException("La orden no puede ser nula.");
+                throw new BadRequestException("La orden no puede ser nula.");
 
             if (request.CustomerId == Guid.Empty)
-                throw new InvalidOperationException("El cliente es obligatorio.");
+                throw new BadRequestException("El cliente es obligatorio.");
 
             if (string.IsNullOrWhiteSpace(request.ShippingAddress) || request.ShippingAddress.Length > 256)
-                throw new InvalidOperationException("La dirección de envío es obligatoria y no puede superar los 256 caracteres.");
+                throw new BadRequestException("La dirección de envío es obligatoria y no puede superar los 256 caracteres.");
 
             if (string.IsNullOrWhiteSpace(request.BillingAddress) || request.BillingAddress.Length > 256)
-                throw new InvalidOperationException("La dirección de facturación es obligatoria y no puede superar los 256 caracteres.");
+                throw new BadRequestException("La dirección de facturación es obligatoria y no puede superar los 256 caracteres.");
 
             if (request.OrderItems == null || request.OrderItems.Count == 0)
-                throw new InvalidOperationException("Debe incluir al menos un ítem en la orden.");
+                throw new BadRequestException("Debe incluir al menos un ítem en la orden.");
         }
 
         public static OrderStatus ValidateNewStatus(OrderModel.OrderRequestStatus newStatus, OrderStatus oldStatus)
         {
             if (newStatus == null)
-                throw new ArgumentException("El nuevo estado de la orden no puede ser nulo.");
+                throw new BadRequestException("El nuevo estado de la orden no puede ser nulo.");
             if (string.IsNullOrWhiteSpace(newStatus.newStatus))
-                throw new ArgumentException("El nuevo estado no puede ser nulo o vacío..");
+                throw new BadRequestException("El nuevo estado no puede ser nulo o vacío..");
             
             var newStatusEnum= Enum.TryParse<OrderStatus>(newStatus.newStatus, true, out var parsedStatus) ? 
-                parsedStatus : throw new ArgumentException($"Estado de orden inválido: {newStatus.newStatus}"); 
+                parsedStatus : throw new BadRequestException($"Estado de orden inválido: {newStatus.newStatus}"); 
 
             if (oldStatus==newStatusEnum) 
                 throw new InvalidStatusTransitionException("El nuevo estado de la orden no puede ser el mismo que el actual.");

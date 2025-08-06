@@ -1,5 +1,6 @@
 ﻿using System;
 using Dsw2025Tpi.Application.Dtos;
+using Dsw2025Tpi.Application.Exceptions;
 
 namespace Dsw2025Tpi.Application.Validation
 {
@@ -8,13 +9,13 @@ namespace Dsw2025Tpi.Application.Validation
         public static void Validate(OrderItemModel.OrderItemRequest item)
         {
             if (item == null)
-                throw new InvalidOperationException("El ítem de la orden no puede ser nulo.");
+                throw new BadRequestException("El ítem de la orden no puede ser nulo.");
 
             if (item.ProductId == Guid.Empty)
-                throw new InvalidOperationException("El producto es obligatorio.");
+                throw new BadRequestException("El producto es obligatorio.");
 
             if (item.Quantity <= 0)
-                throw new InvalidOperationException("La cantidad debe ser mayor a cero.");
+                throw new BadRequestException("La cantidad debe ser mayor a cero.");
         }
     }
 }

@@ -24,36 +24,14 @@ public class AuthenticateController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModelRequest request)
     {
-        try
-        {
-            var token= await _authenticateService.LoginAsync(request);
-            return Ok(token);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var token= await _authenticateService.LoginAsync(request);
+        return Ok(token);
     }
     
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModelRequest model)
     {
-        try
-        {
-            var result = await _authenticateService.RegisterAsync(model);
-            return StatusCode(201, result);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (DuplicatedEntityException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        var result = await _authenticateService.RegisterAsync(model);
+        return StatusCode(201, result);
     }
 }

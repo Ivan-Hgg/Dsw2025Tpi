@@ -8,6 +8,7 @@ using Dsw2025Tpi.Application.Interfaces;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Dsw2025Tpi.Application.Exceptions;
 
 namespace Dsw2025Tpi.Application.Services;
 
@@ -26,7 +27,7 @@ public class JwtTokenService : IJwtTokenService
         var keyText = jwtConfig["Key"] ?? throw new ArgumentNullException("Jwt Key");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyText));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        if(string.IsNullOrEmpty(role)) throw new ArgumentException("Role cannot be empty", nameof(role));
+        if(string.IsNullOrEmpty(role)) throw new BadRequestException("El Rol no puede ser vacío");
         
 
         var claims = new[]

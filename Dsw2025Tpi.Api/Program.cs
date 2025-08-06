@@ -1,4 +1,5 @@
 using Dsw2025Tpi.Api.DependencyInyection;
+using Dsw2025Tpi.Api.MiddleareCustoms;
 using Dsw2025Tpi.Data;
 using Dsw2025Tpi.Data.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -88,6 +89,7 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        app.UseMiddleware<ExceptionHandlerCustom>();
 
         app.UseHttpsRedirection();
 
