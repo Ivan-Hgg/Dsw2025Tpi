@@ -9,20 +9,24 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Dsw2025Tpi.Application.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Dsw2025Tpi.Application.Services;
 
 public class JwtTokenService : IJwtTokenService
 {
     private readonly IConfiguration _config;
+    private readonly ILogger<JwtTokenService> _logger;
 
-    public JwtTokenService(IConfiguration config)
+    public JwtTokenService(IConfiguration config, ILogger<JwtTokenService> logger)
     {
         _config = config;
+        _logger = logger;
     }
 
     public string GenerateToken(string username, string role)
     {
+        _logger.LogInformation($"Generando token JWT para el usuario: {username} con rol: {role}");
         var jwtConfig = _config.GetSection("Jwt");
         var keyText = jwtConfig["Key"] ?? throw new ArgumentNullException("Jwt Key");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyText));

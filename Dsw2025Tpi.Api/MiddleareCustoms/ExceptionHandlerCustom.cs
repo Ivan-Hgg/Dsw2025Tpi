@@ -7,10 +7,12 @@ namespace Dsw2025Tpi.Api.MiddleareCustoms;
 public class ExceptionHandlerCustom
 {
     private readonly RequestDelegate _next;
-    
-    public ExceptionHandlerCustom(RequestDelegate next)
+    private readonly ILogger<ExceptionHandlerCustom> _logger;
+
+    public ExceptionHandlerCustom(RequestDelegate next, ILogger<ExceptionHandlerCustom> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task Invoke(HttpContext context)
@@ -21,6 +23,7 @@ public class ExceptionHandlerCustom
         }
         catch (Exception ex)
         {
+            _logger.LogError($"Error: {ex.GetType().Name}: {ex.Message}");
             await HandleExceptionAsync(context, ex);
         }
     }

@@ -6,6 +6,7 @@ using Dsw2025Tpi.Data.Identity;
 using Dsw2025Tpi.Domain.Entities;
 using Dsw2025Tpi.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,14 +21,16 @@ public class AuthenticateService : IAuthenticateService
     private readonly UserManager<IdentityUserExtension> _userManager;
     private readonly SignInManager<IdentityUserExtension> _signInManager;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ILogger<AuthenticateService> _logger;
 
     public AuthenticateService(IRepository repository, UserManager<IdentityUserExtension> userManager
-        , SignInManager<IdentityUserExtension> signInManager, IJwtTokenService jwtTokenService)
+        , SignInManager<IdentityUserExtension> signInManager, IJwtTokenService jwtTokenService, ILogger<AuthenticateService> logger)
     {
         _repository = repository;
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
+        _logger = logger;
     }
     public async Task<LoginModelResponse> LoginAsync(LoginModelRequest model)
     {
@@ -42,6 +45,7 @@ public class AuthenticateService : IAuthenticateService
         if (role is null)
             throw new InvalidOperationException("El usuario no tiene roles asignados.");
         var token = _jwtTokenService.GenerateToken(model.Username, role);
+        _logger.LogInformation($"Se logueó el usuario: {model.Username}");
         return new LoginModelResponse(token, role); 
     }
 
@@ -70,7 +74,6 @@ public class AuthenticateService : IAuthenticateService
         var result = await _userManager.CreateAsync(user, model.Password);
         if (!result.Succeeded)
         {
-
             IEnumerable<string> errorMessages = result.Errors.Select(e => e.Description);
             string fullErrorMessage = string.Join("\\n", errorMessages);
             await _repository.Delete(customer);
@@ -84,6 +87,7 @@ public class AuthenticateService : IAuthenticateService
             throw new DataInsertException("Error Asignando Rol al usuario");
         }
 
+        _logger.LogInformation($"Se registró un nuevo usuario: {model.Username} con rol {model.Role.ToUpper()}");
         return new RegisterModelResponse(
             customer.Id, 
             user.UserName,

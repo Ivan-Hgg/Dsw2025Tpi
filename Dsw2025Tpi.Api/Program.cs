@@ -18,6 +18,11 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Services.AddLogging(config => {
+            config.AddConsole();
+            config.AddEventLog();
+        });
+
         // Configura el DbContext (ajusta el proveedor y la cadena de conexión según tu entorno)  
         // Add services to the container.  
         builder.Services.AddControllers();

@@ -9,16 +9,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dsw2025Tpi.Application.Exceptions;
 using System.Formats.Asn1;
+using Microsoft.Extensions.Logging;
 
 namespace Dsw2025Tpi.Application.Services
 {
     public class OrdersManagementService : IOrdersManagementService
     {
         private readonly IRepository _repository;
+        private readonly ILogger<OrdersManagementService> _logger;
 
-        public OrdersManagementService(IRepository repository)
+        public OrdersManagementService(IRepository repository, ILogger<OrdersManagementService> logger)
         {
             _repository = repository;
+            _logger = logger;
         }
 
         public async Task<OrderModel.Response> CreateOrderAsync(OrderModel.OrderRequest request)
@@ -80,6 +83,7 @@ namespace Dsw2025Tpi.Application.Services
             };
 
             await _repository.Add(order);
+            _logger.LogInformation($"Se creó una nueva orden de ID: {order.Id}");
 
             // Los productos ya están asignados en los OrderItem
             var responseItems = orderItems.Select(oi => new OrderItemModel.Response(
@@ -105,6 +109,7 @@ namespace Dsw2025Tpi.Application.Services
         }
         public async Task<IEnumerable<OrderModel.Response>?> GetAllOrdersAsync(OrderModel.OrderRequestFilter filter)
         {
+            _logger.LogInformation("Obteniendo todas las órdenes por filtro");
             var pageNumber = filter.PageNumber ?? 1;
             var pageSize = filter.PageSize ?? 10;
             var skip = (pageNumber - 1) * pageSize;
@@ -219,7 +224,7 @@ namespace Dsw2025Tpi.Application.Services
 
         public async Task<OrderModel.ResponseStatus?> UpdateOrderStatusAsync(Guid OrderId, OrderModel.OrderRequestStatus status)
         {
-            if(OrderId == Guid.Empty)
+            if (OrderId == Guid.Empty)
                 throw new BadRequestException("El OrderId no puede ser nulo o vacío.");
             var order = await _repository.GetById<Order>(OrderId, nameof(Order.OrderItems), // incluye los ítems de la orden
                 nameof(Order.OrderItems) + "." + nameof(OrderItem.Product)) 
@@ -227,6 +232,8 @@ namespace Dsw2025Tpi.Application.Services
 
             order.Status = OrderValidator.ValidateNewStatus(status, order.Status);
             await _repository.Update(order);
+            _logger.LogInformation($"Se actualizó el estado de la orden {OrderId} a {status.newStatus}");
+
             if (order.Status == OrderStatus.CANCELLED)
             {
                 await UpdateStockOnOrderCancellation(order);
@@ -240,6 +247,7 @@ namespace Dsw2025Tpi.Application.Services
 
         private async Task UpdateStockOnOrderCancellation(Order order)
         {
+            _logger.LogInformation($"Reponiendo stock por cancelación de la orden {order.Id}");
             foreach (var item in order.OrderItems)
             {
                 var product = await _repository.GetById<Product>(item.ProductId);
@@ -253,7 +261,8 @@ namespace Dsw2025Tpi.Application.Services
 
         public async Task<OrderModel.Response?> GetOrderByIdAsync(Guid id)
         {
-            if(id==Guid.Empty) throw new BadRequestException("El OrderId no puede vacío.");
+            _logger.LogInformation($"Se buscó una orden por ID: {id}");
+            if (id==Guid.Empty) throw new BadRequestException("El OrderId no puede vacío.");
 
             var order = await _repository.GetById<Order>(id, 
                 nameof(Order.OrderItems), // incluye los ítems de la orden
@@ -277,9 +286,6 @@ namespace Dsw2025Tpi.Application.Services
                     oi.Price * oi.Quantity
                 ))
             );
-
-
         }
     }
 }
-
