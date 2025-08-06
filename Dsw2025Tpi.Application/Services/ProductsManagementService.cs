@@ -59,9 +59,9 @@ public class ProductsManagementService : IProductsManagementService
         ProductValidator.Validate(request);
 
         var existSku = await _repository.First<Product>(p => p.Sku == request.Sku);
-        if (existSku != null) throw new DuplicatedEntityException($"Un producto con el mismo Sku ya existe {request.Sku}");
+        if (existSku != null) throw new BadRequestException($"Un producto con el mismo Sku ya existe {request.Sku}");
         var existInternalCode = await _repository.First<Product>(p => p.InternalCode == request.InternalCode);
-        if (existInternalCode != null) throw new DuplicatedEntityException($"Un producto con el mismo InternalCode ya existe {request.InternalCode}");
+        if (existInternalCode != null) throw new BadRequestException($"Un producto con el mismo InternalCode ya existe {request.InternalCode}");
 
         var description = request.Description ?? string.Empty;
 

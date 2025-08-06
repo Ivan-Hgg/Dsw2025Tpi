@@ -29,7 +29,7 @@ namespace Dsw2025Tpi.Application.Services
             OrderValidator.Validate(request);
             
             if(await _repository.GetById<Customer>(request.CustomerId) is null) 
-                throw new EntityNotFoundException($"El CustomerId ingresado no pertenece a ningun cliente: {request.CustomerId}");
+                throw new BadRequestException($"El CustomerId ingresado no pertenece a ningun cliente: {request.CustomerId}");
 
             var orderItems = new List<OrderItem>();
             decimal totalAmount = 0;
@@ -45,7 +45,7 @@ namespace Dsw2025Tpi.Application.Services
             {
                 // Incluye el producto para la respuesta
                 var product = await _repository.GetById<Product>(item.ProductId)
-                    ?? throw new EntityNotFoundException($"Producto no encontrado: {item.ProductId}");
+                    ?? throw new BadRequestException($"Producto no encontrado: {item.ProductId}");
 
                 if (product.StockQuantity < item.Quantity)
                     throw new BadRequestException($"Stock insuficiente para el producto: {product.Name}");
