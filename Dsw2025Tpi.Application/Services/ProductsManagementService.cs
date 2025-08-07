@@ -79,12 +79,13 @@ public class ProductsManagementService : IProductsManagementService
     public async Task<ProductModel.Response> UpdateProduct(Guid id, ProductModel.Request request)
     {
         ProductValidator.Validate(request);
+
+        var product = await _repository.GetById<Product>(id) ?? throw new EntityNotFoundException("Producto no encontrado.");
+
         var existSku = await _repository.First<Product>(p => p.Sku == request.Sku && p.Id != id);
         if(existSku!=null) throw new DuplicatedEntityException($"Un producto con el mismo Sku ya existe {request.Sku}");
         var existInternalCode = await _repository.First<Product>(p => p.InternalCode == request.InternalCode && p.Id != id);   
         if (existInternalCode != null) throw new DuplicatedEntityException($"Un producto con el mismo InternalCode ya existe {request.InternalCode}");
-
-        var product = await _repository.GetById<Product>(id) ?? throw new EntityNotFoundException("Producto no encontrado.");
 
         product.Sku = request.Sku;
         product.InternalCode = request.InternalCode;
