@@ -37,7 +37,6 @@ namespace Dsw2025Tpi.Application.Services
             var orderItems = new List<OrderItem>();
             decimal totalAmount = 0;
 
-            // Verifica stock y existencia de productos
             foreach (var item in request.OrderItems)
             {
                 OrderItemValidator.Validate(item);
@@ -51,7 +50,15 @@ namespace Dsw2025Tpi.Application.Services
                     ?? throw new BadRequestException($"Producto no encontrado: {item.ProductId}");
 
                 if (product.StockQuantity < item.Quantity)
+                {
+                    foreach(var orderItemm in orderItems)
+                    {
+                        var productBad = await _repository.GetById<Product>(orderItemm.ProductId);
+                        productBad.StockQuantity += orderItemm.Quantity;
+                        await _repository.Update(productBad);
+                    }
                     throw new BadRequestException($"Stock insuficiente para el producto: {product.Name}");
+                }
 
                 if (!product.IsActive)
                     throw new BadRequestException($"El producto {product.Name} está desactivado y no puede ser comprado.");

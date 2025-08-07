@@ -37,7 +37,7 @@ public class ExceptionHandlerCustom
             UnauthorizedAccessException => HttpStatusCode.Unauthorized,
             DuplicatedEntityException=> HttpStatusCode.Conflict,
             InvalidStatusTransitionException=>HttpStatusCode.BadRequest,
-            DataInsertException=>HttpStatusCode.InternalServerError,
+            DataInsertException=>HttpStatusCode.BadRequest,
             _ => HttpStatusCode.InternalServerError
         };
 
