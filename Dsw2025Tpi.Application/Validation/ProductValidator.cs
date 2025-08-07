@@ -27,9 +27,9 @@ namespace Dsw2025Tpi.Application.Validation
         {
             if (string.IsNullOrWhiteSpace(sku))
                 throw new BadRequestException("El SKU es obligatorio.");
-            var pattern = @"^[A-Z0-9_-]{3,10}$";
+            var pattern = @"^SKU-[0-9]{3,10}$";
             if (!Regex.IsMatch(sku,pattern))
-                throw new BadRequestException("El SKU debe contener entre 3 y 10 caracteres alfanuméricos (letras mayusculas), guiones bajos o guiones medios.");
+                throw new BadRequestException("El SKU debe comenzar con 'SKU-' seguido de 3 y 10 digitos.");
         }
         public static void ValidateInternalCode(string internalCode)
         {

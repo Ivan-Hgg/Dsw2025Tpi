@@ -13,6 +13,7 @@ namespace Dsw2025Tpi.Domain.Entities
         public string ShippingAddress { get; set; } = string.Empty;
         public string BillingAddress { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
+        public string? Notes { get; set; }
         public Guid? CustomerId { get; set; }
         public Customer? Customer { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; }
@@ -27,12 +28,14 @@ namespace Dsw2025Tpi.Domain.Entities
             DateTime date,
             string shippingAddress,
             string billingAddress,
-            decimal totalAmount)
+            decimal totalAmount,
+            string notes)
         {
             Date = date;
             ShippingAddress = shippingAddress;
             BillingAddress = billingAddress;
             TotalAmount = totalAmount;
+            Notes= notes?? string.Empty;
             Status = OrderStatus.PENDING;
             OrderItems = new List<OrderItem>();
         }

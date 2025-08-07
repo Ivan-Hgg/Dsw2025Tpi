@@ -9,6 +9,7 @@ namespace Dsw2025Tpi.Application.Dtos
             Guid CustomerId,
             string ShippingAddress,
             string BillingAddress,
+            string Notes,
             List<OrderItemModel.OrderItemRequest> OrderItems
         );
         public record OrderRequestFilter(
@@ -27,6 +28,7 @@ namespace Dsw2025Tpi.Application.Dtos
             Guid CustomerId,
             string ShippingAddress,
             string BillingAddress,
+            string Notes,
             DateTime Date,
             decimal TotalAmount,
             string Status,

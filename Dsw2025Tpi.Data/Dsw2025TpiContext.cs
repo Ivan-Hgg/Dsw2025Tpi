@@ -68,6 +68,8 @@ public class Dsw2025TpiContext : DbContext
                 .HasColumnType("decimal(18,2)");
             eb.Property(o => o.Date)
                 .IsRequired();
+            eb.Property(o => o.Notes)
+                .HasMaxLength(256);
             eb.HasOne(o => o.Customer)
                 .WithMany(c => c.Orders)
                 .HasForeignKey(o => o.CustomerId)

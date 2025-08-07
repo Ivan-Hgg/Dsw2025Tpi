@@ -30,6 +30,8 @@ public class ProductsManagementService : IProductsManagementService
         var product = await _repository.GetById<Product>(id);
         if (product == null)
             throw new EntityNotFoundException($"Producto no encontrado, ProductId: {id}");
+        if(!product.IsActive)
+            throw new EntityNotFoundException($"producto desactivado: {product.Id}");
 
         return new ProductModel.Response(
             product.Id,
@@ -78,9 +80,9 @@ public class ProductsManagementService : IProductsManagementService
 
     public async Task<ProductModel.Response> UpdateProduct(Guid id, ProductModel.Request request)
     {
-        ProductValidator.Validate(request);
-
         var product = await _repository.GetById<Product>(id) ?? throw new EntityNotFoundException("Producto no encontrado.");
+
+        ProductValidator.Validate(request);
 
         var existSku = await _repository.First<Product>(p => p.Sku == request.Sku && p.Id != id);
         if(existSku!=null) throw new DuplicatedEntityException($"Un producto con el mismo Sku ya existe {request.Sku}");
