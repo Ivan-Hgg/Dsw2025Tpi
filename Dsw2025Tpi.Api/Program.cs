@@ -68,6 +68,14 @@ public class Program
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowVite", policy =>
+                policy.WithOrigins("http://localhost:5173")
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials());
+        });
 
 
         var app = builder.Build();
@@ -99,7 +107,9 @@ public class Program
         app.UseHttpsRedirection();
 
         //app.UseRouting();
-        
+        app.UseCors("AllowVite");
+
+
         app.UseAuthentication();
         app.UseAuthorization();
 

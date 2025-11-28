@@ -55,43 +55,72 @@ public class AuthenticateService : IAuthenticateService
 
         var existUser = await _userManager.FindByNameAsync(model.Username);
         if (existUser != null) throw new DuplicatedEntityException($"El nombre de usuario {model.Username} ya existe.");
-
-        var existmail = await _repository.First<Customer>(c => c.Email == model.Customer.Email);
-        if (existmail != null) throw new DuplicatedEntityException($"Un cliente ya fue registrado con el EMAIL: {model.Customer.Email}");
-
-        var existPhoneNumber = await _repository.First<Customer>(c => c.PhoneNumber == model.Customer.PhoneNumber);
-        if (existPhoneNumber != null) throw new DuplicatedEntityException($"Un cliente ya fue registrado el numero de telefono: {model.Customer.PhoneNumber}");
-
-        var customer = new Customer(model.Customer.Name, model.Customer.Email, model.Customer.PhoneNumber);
-        var user = new IdentityUserExtension { CustomerId = customer.Id, UserName = model.Username, Email = model.Customer.Email, PhoneNumber= model.Customer.PhoneNumber };
-
-        var resultCustomer=await _repository.Add(customer);
-        if(resultCustomer is null)
+        if(model.Role.ToUpper() != "ADMINISTRADOR")
         {
-            throw new DataInsertException("Error al crear el cliente");
+            var existmail = await _repository.First<Customer>(c => c.Email == model.Customer.Email);
+            if (existmail != null) throw new DuplicatedEntityException($"Un cliente ya fue registrado con el EMAIL: {model.Customer.Email}");
+
+            var existPhoneNumber = await _repository.First<Customer>(c => c.PhoneNumber == model.Customer.PhoneNumber);
+            if (existPhoneNumber != null) throw new DuplicatedEntityException($"Un cliente ya fue registrado el numero de telefono: {model.Customer.PhoneNumber}");
+
+            var customer = new Customer(model.Customer.Name, model.Customer.Email, model.Customer.PhoneNumber);
+            var user = new IdentityUserExtension { CustomerId = customer.Id, UserName = model.Username, Email = model.Customer.Email, PhoneNumber = model.Customer.PhoneNumber };
+
+            var resultCustomer = await _repository.Add(customer);
+            if (resultCustomer is null)
+            {
+                throw new DataInsertException("Error al crear el cliente");
+            }
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                IEnumerable<string> errorMessages = result.Errors.Select(e => e.Description);
+                string fullErrorMessage = string.Join("\\n", errorMessages);
+                await _repository.Delete(customer);
+                throw new DataInsertException(fullErrorMessage);
+            }
+            var roleResult = await _userManager.AddToRoleAsync(user, model.Role.ToUpper());
+            if (!roleResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(user);
+                await _repository.Delete(customer);
+                throw new DataInsertException("Error Asignando Rol al usuario");
+            }
+
+            _logger.LogInformation($"Se registró un nuevo usuario: {model.Username} con rol {model.Role.ToUpper()}");
+            return new RegisterModelResponse(
+                customer.Id,
+                user.UserName,
+                model.Role.ToUpper()
+            );
+        }
+        else
+        {
+            var user = new IdentityUserExtension { UserName = model.Username, Email=model.Email };
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                IEnumerable<string> errorMessages = result.Errors.Select(e => e.Description);
+                string fullErrorMessage = string.Join("\\n", errorMessages);
+                throw new DataInsertException(fullErrorMessage);
+            }
+            var roleResult = await _userManager.AddToRoleAsync(user, model.Role.ToUpper());
+            if (!roleResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(user);
+                throw new DataInsertException("Error Asignando Rol al usuario");
+            }
+
+            _logger.LogInformation($"Se registró un nuevo usuario: {model.Username} con rol {model.Role.ToUpper()}");
+            return new RegisterModelResponse(
+                null,
+                user.UserName,
+                model.Role.ToUpper()
+            );
         }
 
-        var result = await _userManager.CreateAsync(user, model.Password);
-        if (!result.Succeeded)
-        {
-            IEnumerable<string> errorMessages = result.Errors.Select(e => e.Description);
-            string fullErrorMessage = string.Join("\\n", errorMessages);
-            await _repository.Delete(customer);
-            throw new DataInsertException(fullErrorMessage); 
-        }
-        var roleResult = await _userManager.AddToRoleAsync(user, model.Role.ToUpper());
-        if (!roleResult.Succeeded)
-        {
-            await _userManager.DeleteAsync(user);
-            await _repository.Delete(customer);
-            throw new DataInsertException("Error Asignando Rol al usuario");
-        }
 
-        _logger.LogInformation($"Se registró un nuevo usuario: {model.Username} con rol {model.Role.ToUpper()}");
-        return new RegisterModelResponse(
-            customer.Id, 
-            user.UserName,
-            model.Role.ToUpper()
-        );
+
+            
     }
 }

@@ -16,9 +16,16 @@ public static class AuthenticateValidator
         if (model == null)
             throw new BadRequestException("El modelo de registro no puede ser nulo.");
         ValidateUsername(model.Username);
-        CustomerValidator.Validate(model.Customer);
-        ValidatePassword(model.Password);
         ValidateRole(model.Role);
+        if (model.Role.ToUpper() != "ADMINISTRADOR")
+        {
+            CustomerValidator.Validate(model.Customer);
+        }
+        else
+        {
+            CustomerValidator.ValidateEmail(model.Email);
+        }
+            ValidatePassword(model.Password);
     }
 
     public static void ValidateLoginModelRequest(LoginModelRequest model) 

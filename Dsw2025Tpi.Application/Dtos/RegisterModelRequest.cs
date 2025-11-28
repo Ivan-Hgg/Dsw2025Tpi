@@ -8,13 +8,14 @@ namespace Dsw2025Tpi.Application.Dtos;
 
 public record RegisterModelRequest(
     string Username,
-    CustomerModel.CustomerModelRequest Customer,
+    string? Email,
+    CustomerModel.CustomerModelRequest? Customer,
     string Password,
     string Role
 );
 
 public record RegisterModelResponse(
-    Guid CustomerId,
+    Guid? CustomerId,
     string Username,
     string Role
 );
