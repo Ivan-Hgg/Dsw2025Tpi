@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -119,5 +120,35 @@ public class ProductsManagementService : IProductsManagementService
         product.IsActive = false;
         await _repository.Update(product);
         _logger.LogInformation($"Se desactivó el producto {product.Name} con ID: {product.Id}");
+    }
+
+    public async Task<ProductModel.ResponsePagination?> GetProducts(ProductModel.FilterProduct request)
+    {
+        var isActive = request.Status == "enabled" 
+            ? (bool?)true 
+            : request.Status == "disabled" 
+                ? (bool?)false 
+                : null;
+        _logger.LogInformation("Consulta de Productos");
+        var activeProducts = await _repository.GetFiltered<Product>(p => 
+        (isActive == null || p.IsActive == isActive) 
+        && (string.IsNullOrEmpty(request.Search)||p.Name.Contains(request.Search))
+        );
+        if (activeProducts is null || !activeProducts.Any()) throw new NoContentException("No Products were found");
+
+        var products = activeProducts.Select(p => new ProductModel.Response(
+            p.Id,
+            p.Sku,
+            p.InternalCode,
+            p.Name,
+            p.Description,
+            p.CurrentUnitPrice,
+            p.StockQuantity,
+            p.IsActive
+            )).OrderBy(p=>p.Sku)
+            .Skip((request.PageNumber -1)* request.PageSize??0)
+            .Take(request.PageSize??activeProducts.Count());
+        return new ProductModel.ResponsePagination(products.ToList(), activeProducts.Count());
+
     }
 }

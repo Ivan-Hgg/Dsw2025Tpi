@@ -59,4 +59,16 @@ public class ProductsController : ControllerBase
         await _service.DeactivateProduct(id);
         return NoContent();
     }
+
+    [HttpGet("admin")]
+    public async Task<IActionResult> GetAuthProducts([FromQuery]ProductModel.FilterProduct request)
+    {
+        var products = await _service.GetProducts(request);
+        if(products is null)
+        {
+            Response.Headers.Append("X-Message", "No se encontraron productos");
+            return NoContent();
+        }
+        return Ok(products);
+    }
 }

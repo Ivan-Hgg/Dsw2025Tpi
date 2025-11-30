@@ -9,5 +9,6 @@ namespace Dsw2025Tpi.Application.Interfaces
         Task<ProductModel.Response> AddProduct(ProductModel.Request request);
         Task<ProductModel.Response> UpdateProduct(Guid id, ProductModel.Request request);
         Task DeactivateProduct(Guid id);
+        Task<ProductModel.ResponsePagination?> GetProducts(ProductModel.FilterProduct request);
     }
 }

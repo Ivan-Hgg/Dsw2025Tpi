@@ -33,6 +33,7 @@ public class ExceptionHandlerCustom
         var statusCode = exception switch
         {
             BadRequestException => HttpStatusCode.BadRequest,
+            NoContentException=> HttpStatusCode.NoContent,
             EntityNotFoundException => HttpStatusCode.NotFound,
             UnauthorizedAccessException => HttpStatusCode.Unauthorized,
             DuplicatedEntityException=> HttpStatusCode.Conflict,
